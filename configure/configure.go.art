@@ -15,7 +15,7 @@ import (
 type Configure struct {
 	HTTP     HTTP
 	Module   Module
-	Cookie   Cookie	{{if db}}
+	JWT   JWT	{{if db}}
 	DB       DB{{/if}}
 	Logger   logger.Options
 	basePath string
@@ -27,7 +27,7 @@ func (c *Configure) Format() (e error) {
 	if e = c.HTTP.Format(c.basePath); e != nil {
 		return
 	}
-	if e = c.Cookie.Format(c.basePath); e != nil {
+	if e = c.JWT.Format(c.basePath); e != nil {
 		return
 	}{{if db}}
 	if e = c.DB.Format(c.basePath); e != nil {

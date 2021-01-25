@@ -1,0 +1,169 @@
+package jwt
+
+import (
+	"context"
+	"{{pkg}}/db"
+	"{{pkg}}/logger"
+	"{{pkg}}/management"
+	"strings"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"go.uber.org/zap"
+	"google.golang.org/grpc/metadata"
+)
+
+// Session user session info
+type Session struct {
+	ID            int64   `json:"id,omitempty"`
+	Name          string  `json:"name,omitempty"`
+	Authorization []int32 `json:"authorization,omitempty"`
+	Nickname      string  `json:"nickname,omitempty"`
+
+	// salt for encryption
+	Salt    string `json:"salt,omitempty"`
+	Tourist bool   `json:"tourist,omitempty"`
+}
+
+// Who .
+func (s *Session) Who() string {
+	if s.Nickname != `` {
+		return s.Name + `<` + s.Nickname + `>`
+	}
+	return s.Name
+}
+
+// AccessToken return access token string
+func (s *Session) AccessToken() (string, error) {
+	at := time.Now()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &sessionClaims{
+		Session: *s,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: at.Add(_access).Unix(),
+			Subject:   `access`,
+		},
+	})
+	return token.SignedString(_key)
+}
+
+// RefreshToken return refresh token string
+func (s *Session) RefreshToken() (string, error) {
+	at := time.Now()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &sessionClaims{
+		Session: *s,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: at.Add(_refresh).Unix(),
+			Subject:   `refresh`,
+		},
+	})
+	return token.SignedString(_key)
+}
+
+// IsRoot if user is root return true
+func (s *Session) IsRoot() bool {
+	return s.Any(db.Root)
+}
+
+// Test if has all authorization return true
+func (s *Session) Test(vals ...int32) bool {
+	count := len(s.Authorization)
+	for i := 0; i < count; i++ {
+		for _, val := range vals {
+			if s.Authorization[i] != val {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// None if not has any authorization return true
+func (s *Session) None(vals ...int32) bool {
+	count := len(s.Authorization)
+	for i := 0; i < count; i++ {
+		for _, val := range vals {
+			if s.Authorization[i] == val {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// Any if has any authorization return true
+func (s *Session) Any(vals ...int32) bool {
+	count := len(s.Authorization)
+	for i := 0; i < count; i++ {
+		for _, val := range vals {
+			if s.Authorization[i] == val {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// FromContext restore session from context
+func FromContext(ctx context.Context) (session *Session, e error) {
+	keys, ok := management.FromContext(ctx)
+	if ok {
+		v := keys.Get(`session`)
+		if v != nil {
+			if session, ok = v.(*Session); ok {
+				return
+			} else if !ok {
+				if ce := logger.Logger.Check(zap.ErrorLevel, `session FromContext`); ce != nil {
+					ce.Write(
+						zap.String(`error`, `md type error`),
+					)
+				}
+			}
+		}
+	}
+
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		session, e = FromMD(md)
+	}
+	if session != nil && keys != nil {
+		keys.Set(`session`, session)
+	}
+	return
+}
+
+// FromMD restore session from MD
+func FromMD(md metadata.MD) (session *Session, e error) {
+	strs := md.Get(`authorization`)
+	var err error
+	for _, str := range strs {
+		if strings.HasPrefix(str, `Bearer `) {
+			session, err = FromToken(str[7:])
+			if err == nil {
+				return
+			}
+			if e == nil {
+				e = err
+			}
+		}
+	}
+	return
+}
+
+type sessionClaims struct {
+	Session
+	jwt.StandardClaims
+}
+
+// FromToken restore session from cookie
+func FromToken(tokenString string) (session *Session, e error) {
+	var claims sessionClaims
+	_, e = jwt.ParseWithClaims(tokenString, &claims, keyFunc)
+	if e != nil {
+		return
+	}
+	session = &claims.Session
+	return
+}
+func keyFunc(*jwt.Token) (interface{}, error) {
+	return _key, nil
+}

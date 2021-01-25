@@ -1,0 +1,191 @@
+package daemon
+
+import (
+	"context"
+	"crypto/md5"
+	"encoding/hex"
+	"{{pkg}}/db/jwt"
+	"{{pkg}}/logger"
+	"strconv"
+	"sync"
+	"time"
+
+	"github.com/google/uuid"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
+)
+
+var (
+	errMetadata          = status.Error(codes.PermissionDenied, `unknow metadata`)
+	errMetadataUnix      = status.Error(codes.PermissionDenied, `unknow metadata unix`)
+	errParseUnix         = status.Error(codes.PermissionDenied, `parse metadata unix error`)
+	errReplayTimeout     = status.Error(codes.PermissionDenied, `replay timeout`)
+	errMetadataNonce     = status.Error(codes.PermissionDenied, `unknow metadata nonce`)
+	errParseNonce        = status.Error(codes.PermissionDenied, `parse metadata nonce error`)
+	errNonceExpired      = status.Error(codes.PermissionDenied, `nonce expired`)
+	errMetadataSignature = status.Error(codes.PermissionDenied, `unknow metadata signature`)
+	errSignature         = status.Error(codes.PermissionDenied, `signature not match`)
+	errSalt              = status.Error(codes.PermissionDenied, `unknow salt`)
+)
+
+type replay struct {
+	force    bool
+	duration time.Duration
+	max      int
+	keys     map[string]bool
+	ch       chan string
+	sync.Mutex
+}
+
+func newReplay(force bool, duration time.Duration, max int) *replay {
+	var (
+		keys = make(map[string]bool, max)
+		ch   = make(chan string, max)
+	)
+
+	if force {
+		logger.Logger.Info(`feplay force`)
+	} else {
+		logger.Logger.Info(`feplay auto`)
+	}
+	return &replay{
+		force:    force,
+		duration: duration,
+		max:      max,
+		keys:     keys,
+		ch:       ch,
+	}
+}
+func (r *replay) unary(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (response interface{}, e error) {
+	e = r.checkAttack(ctx)
+	if e != nil {
+		return
+	}
+	response, e = handler(ctx, req)
+	return
+}
+func (r *replay) stream(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (e error) {
+	ctx := ss.Context()
+	e = r.checkAttack(ctx)
+	if e != nil {
+		return
+	}
+	e = handler(srv, ss)
+	return
+}
+func (r *replay) checkAttack(ctx context.Context) (e error) {
+	unix, nonce, signature, e := r.getValue(ctx)
+	if e != nil {
+		if !r.force {
+			e = nil
+		}
+		return
+	}
+	_, e = uuid.Parse(nonce)
+	if e != nil {
+		e = errParseNonce
+		return
+	}
+
+	e = r.checkUnix(unix)
+	if e != nil {
+		return
+	}
+	salt, e := r.getSalt(ctx)
+	if e != nil {
+		return
+	}
+	e = r.checkSignature(unix, nonce, signature, salt)
+	if e != nil {
+		return
+	}
+	e = r.checkNonce(nonce)
+	if e != nil {
+		return
+	}
+	return
+}
+func (r *replay) getValue(ctx context.Context) (unix, nonce, signature string, e error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		e = errMetadata
+		return
+	}
+	unix = r.getMetadataValue(md, `unix`)
+	if unix == `` {
+		e = errMetadataUnix
+	}
+	nonce = r.getMetadataValue(md, `nonce`)
+	if nonce == `` {
+		e = errMetadataNonce
+	}
+	signature = r.getMetadataValue(md, `signature`)
+	if signature == `` {
+		e = errMetadataSignature
+	}
+	return
+}
+func (r *replay) getMetadataValue(md metadata.MD, key string) (str string) {
+	strs := md.Get(key)
+	if len(strs) > 0 {
+		str = strs[0]
+	}
+	return
+}
+
+func (r *replay) checkNonce(nonce string) (e error) {
+	r.Lock()
+	if r.keys[nonce] {
+		r.Unlock()
+		e = errNonceExpired
+		return
+	}
+
+	select {
+	case r.ch <- nonce:
+	default:
+		pop := <-r.ch
+		delete(r.keys, pop)
+
+		r.ch <- nonce
+	}
+	r.keys[nonce] = true
+	r.Unlock()
+	return
+}
+func (r *replay) checkUnix(unix string) (e error) {
+	v, e := strconv.ParseInt(unix, 10, 64)
+	if e != nil || v < 1 {
+		e = errParseUnix
+		return
+	}
+	at := time.Unix(v, 0).Local()
+	now := time.Now()
+	if at.After(now.Add(r.duration)) || at.Before(now.Add(-r.duration)) {
+		e = errReplayTimeout
+		return
+	}
+	return
+}
+func (r *replay) checkSignature(unix, nonce, signature, salt string) (e error) {
+	b := md5.Sum([]byte(unix + nonce))
+	b = md5.Sum([]byte(hex.EncodeToString(b[:]) + salt))
+	if hex.EncodeToString(b[:]) != signature {
+		e = errSignature
+	}
+	return
+}
+func (r *replay) getSalt(ctx context.Context) (salt string, e error) {
+	session, e := jwt.FromContext(ctx)
+	if e != nil {
+		return
+	}
+	if session == nil || session.Salt == `` {
+		e = errSalt
+		return
+	}
+	salt = session.Salt
+	return
+}

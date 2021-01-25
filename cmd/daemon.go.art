@@ -3,7 +3,7 @@ package cmd
 import (
 	"{{pkg}}/cmd/internal/daemon"
 	"{{pkg}}/configure"
-	"{{pkg}}/cookie"{{if db}}
+	"{{pkg}}/db/jwt"{{if db}}
 	"{{pkg}}/db/manipulator"{{/if}}
 	"{{pkg}}/logger"
 	"{{pkg}}/management"
@@ -53,8 +53,8 @@ func init() {
 			// init db
 			manipulator.Init(){{/if}}
 
-			// init cookie
-			e = cookie.Init(cnf.Cookie.Filename, cnf.Cookie.MaxAge)
+			// init jwt
+			e = jwt.Init(cnf.JWT.Filename, cnf.JWT.Access, cnf.JWT.Refresh)
 			if e != nil {
 				log.Fatalln(e)
 			}

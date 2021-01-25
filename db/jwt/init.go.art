@@ -1,0 +1,98 @@
+package jwt
+
+import (
+	"crypto/rand"
+	"encoding/hex"
+	"encoding/json"
+	"io"
+	"io/ioutil"
+	"{{pkg}}/logger"
+	"os"
+	"time"
+
+	"go.uber.org/zap"
+)
+
+var _key []byte
+var _access, _refresh time.Duration
+
+// Init key
+func Init(filename string, access, refresh time.Duration) (e error) {
+	_access = access
+	_refresh = refresh
+	b, e := ioutil.ReadFile(filename)
+	if e != nil {
+		if os.IsNotExist(e) {
+			e = nil
+			newGenerate(filename)
+			return
+		}
+		if ce := logger.Logger.Check(zap.FatalLevel, "load jwtkey"); ce != nil {
+			ce.Write(
+				zap.Error(e),
+			)
+		}
+		return
+	}
+	var key _Key
+	e = json.Unmarshal(b, &key)
+	if e != nil {
+		if ce := logger.Logger.Check(zap.FatalLevel, "unmarshal jwtkey"); ce != nil {
+			ce.Write(
+				zap.Error(e),
+			)
+		}
+		return
+	}
+	_key, e = hex.DecodeString(key.Key)
+	if e != nil {
+		if ce := logger.Logger.Check(zap.FatalLevel, "decode jwtkey"); ce != nil {
+			ce.Write(
+				zap.String("key", key.Key),
+			)
+		}
+		return
+	}
+	return
+}
+
+func newGenerate(filename string) {
+	_key = GenerateRandomKey(64)
+	e := Save(filename, _key)
+	if e != nil {
+		if ce := logger.Logger.Check(zap.WarnLevel, "save jwtkey"); ce != nil {
+			ce.Write(
+				zap.Error(e),
+			)
+		}
+	}
+	return
+}
+
+type _Key struct {
+	Key string
+}
+
+// GenerateRandomKey .
+func GenerateRandomKey(length int) []byte {
+	k := make([]byte, length)
+	if _, err := io.ReadFull(rand.Reader, k); err != nil {
+		return nil
+	}
+	return k
+}
+
+// Save save key to file
+func Save(filename string, key []byte) (e error) {
+	b, e := json.MarshalIndent(_Key{
+		Key: hex.EncodeToString(key),
+	}, "", "\t")
+	if e != nil {
+		return
+	}
+	e = ioutil.WriteFile(filename, b, 0664)
+	if e != nil {
+		return
+	}
+	return
+}

@@ -49,11 +49,14 @@ local GB = 1024*MB;
 			]{{/if}}
 		},
 	},
-	Cookie: {
+	// JWT token configure
+	JWT: {
 		// key save filename 
-		Filename: "securecookie.json",
-		// expiry duration
-		MaxAge: Day,
+		Filename: "jwtkey.json",
+		// access token expiration duration
+		Access: Day,
+		// refresh token expiration duration
+		Refresh: Day,
 	},{{if db}}
 	DB: {
 		// driver [mysql mssql sqlite3]

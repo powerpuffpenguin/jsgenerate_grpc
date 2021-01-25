@@ -1,17 +1,29 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.jsgenerate = exports.description = exports.tag = void 0;
+const fs_1 = require("fs");
 const helper_1 = require("./helper");
 const path_1 = require("path");
-exports.tag = 'gateway db';
+exports.tag = 'all gateway gin db view';
 exports.description = 'google grpc frame template';
+async function exists(filename) {
+    try {
+        await fs_1.promises.access(filename, fs_1.constants.F_OK);
+        return true;
+    }
+    catch (e) {
+    }
+    return false;
+}
 class Metadata {
     constructor(pkg, name, tag) {
         this.date = new Date();
         this.project_ = '';
         this.pkg_ = '';
         this.gateway = false;
+        this.gin = false;
         this.db = false;
+        this.view = false;
         this.grpcPrefix = 'jsgenerate_';
         pkg = pkg.replace('.', '/').replace('@', '').replace('-', '_');
         pkg = pkg.replace('//', '/').replace('__', '_');
@@ -21,14 +33,27 @@ class Metadata {
         this.project_ = name;
         this.grpcPrefix += name;
         if (Array.isArray(tag)) {
-            tag.forEach((v) => {
-                if (v == 'gateway') {
+            for (let i = 0; i < tag.length; i++) {
+                const v = tag[i];
+                if (v == 'all') {
                     this.gateway = true;
+                    this.gin = true;
+                    this.db = true;
+                    this.view = true;
+                }
+                else if (v == 'gateway') {
+                    this.gateway = true;
+                }
+                else if (v == 'gin') {
+                    this.gin = true;
                 }
                 else if (v == 'db') {
                     this.db = true;
                 }
-            });
+                else if (v == 'view') {
+                    this.view = true;
+                }
+            }
         }
     }
     get project() {
@@ -50,9 +75,9 @@ function jsgenerate(context) {
             return;
         }
         const filename = nameService.getOutput(name);
-        // if (existsSync(filename)) {
-        //     throw new Error(`file exists : ${filename}`);
-        // }
+        if (exists(filename)) {
+            // throw new Error(`file already exists`)
+        }
         if (nameService.isTemplate(name)) {
             const text = context.template(src, md);
             context.writeFile(filename, text, stat.mode);
