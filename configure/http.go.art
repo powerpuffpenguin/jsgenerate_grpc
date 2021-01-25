@@ -1,0 +1,90 @@
+package configure
+
+import (
+	"path/filepath"
+	"strings"
+	"time"
+)
+
+// HTTP configure http
+type HTTP struct {
+	Addr string
+
+	CertFile string
+	KeyFile  string
+
+	MaxBytesReader int64{{if gateway}}
+
+	Document bool{{/if}}
+	Replay   Replay
+}
+
+// H2 if tls return true
+func (c *HTTP) H2() bool {
+	return c.CertFile != "" && c.KeyFile != ""
+}
+
+// H2C if not use tls return true
+func (c *HTTP) H2C() bool {
+	return c.CertFile == "" || c.KeyFile == ""
+}
+
+// Format .
+func (c *HTTP) Format(basePath string) (e error) {
+	c.Addr = strings.TrimSpace(c.Addr)
+	c.CertFile = strings.TrimSpace(c.CertFile)
+	c.KeyFile = strings.TrimSpace(c.KeyFile)
+
+	if c.H2() {
+		if filepath.IsAbs(c.CertFile) {
+			c.CertFile = filepath.Clean(c.CertFile)
+		} else {
+			c.CertFile = filepath.Clean(basePath + "/" + c.CertFile)
+		}
+
+		if filepath.IsAbs(c.KeyFile) {
+			c.KeyFile = filepath.Clean(c.KeyFile)
+		} else {
+			c.KeyFile = filepath.Clean(basePath + "/" + c.KeyFile)
+		}
+	}
+
+	if c.MaxBytesReader == 0 {
+		c.MaxBytesReader = 1024 * 32
+	}
+
+	if e = c.Replay.Format(basePath); e != nil {
+		return
+	}
+	return
+}
+
+// Replay .
+// * unix request timestamp
+// * nonce request id it's a uuid string
+// * signature md5(md5(unix+nonce)+salt)
+type Replay struct {
+	// * auto if request header has [unix nonce signature] use, else not use
+	// * force must use
+	// * disabled
+	Mode string
+	// timestamp allowance
+	Duration time.Duration
+	// nonce cache
+	Max int
+}
+
+// Format .
+func (r *Replay) Format(basePath string) (e error) {
+	r.Mode = strings.ToLower(strings.TrimSpace(r.Mode))
+
+	if r.Duration < 1 {
+		r.Duration = time.Minute
+	} else {
+		r.Duration *= time.Millisecond
+	}
+	if r.Max < 1000 {
+		r.Max = 1000
+	}
+	return
+}

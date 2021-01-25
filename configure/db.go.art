@@ -1,0 +1,25 @@
+package configure
+
+import (
+	"{{pkg}}/utils"
+)
+
+// DB database configure
+type DB struct {
+	Driver  string
+	Str     string
+	Show    bool
+	MaxOpen int
+	MaxIdle int
+}
+
+// Format .
+func (db *DB) Format(basePath string) (e error) {
+	if db.Driver == "sqlite3" {
+		if db.Str == "" {
+			db.Str = "securecookie.json"
+		}
+		db.Str = utils.Abs(basePath, db.Str)
+	}
+	return
+}

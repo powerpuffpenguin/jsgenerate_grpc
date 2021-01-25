@@ -1,0 +1,87 @@
+local Millisecond = 1;
+local Second = 1000 * Millisecond;
+local Minute = 60 * Second;
+local Hour = 60 * Minute;
+local Day = 24 * Hour;
+
+local KB = 1024;
+local MB = 1024*KB;
+local GB = 1024*MB;
+
+{
+	HTTP: {
+		Addr: ":6000",
+		// x509 if empty use h2c
+		// CertFile: "test.pem",
+		// KeyFile: "test.key",
+		// http body limit default 32k
+		MaxBytesReader: KB*32,{{if gateway}}
+		// if true display RESTful api on uri /document
+		Document: false,{{/if}}
+		// * unix request timestamp
+		// * nonce request id it's a uuid string
+		// * signature md5(md5(unix+nonce)+salt)
+		Replay: {
+			// * auto if request header has [unix nonce signature] use, else not use
+			// * force must use
+			// * disabled
+			Mode: 'auto',
+			// timestamp allowance
+			Duration: Minute*3,
+			// nonce cache
+			Max: 10000,
+		},
+	},
+	Module: {
+		// enable module
+		Enable: [
+			"features.session",
+			"features.system",
+		],
+		// module configure
+		Data: {	{{if !db}}
+			"features.session": [
+				{
+					"name": "king",
+					"password": "12345678",
+					"authorization": [1],
+				},
+			]{{/if}}
+		},
+	},
+	Cookie: {
+		// key save filename 
+		Filename: "securecookie.json",
+		// expiry duration
+		MaxAge: Day,
+	},{{if db}}
+	DB: {
+		// driver [mysql mssql sqlite3]
+		Driver: "sqlite3",
+		// connection string
+		// Str: "{{project}}:12345678@/{{project}}?charset=utf8", // mysql
+		// Str: "server=127.0.0.1;port=1433;user id={{project}};password=12345678;database={{project}};encrypt=disable;", // mssql
+		Str: "{{project}}.db", // sqlite3
+		// Show: true,
+		// max connections if < 1 not not limited
+		MaxOpen: 10,
+		// idle connections if < 1  not exists idle
+		MaxIdle: 2,
+	},{{/if}}
+	Logger: {
+		// log save filename
+		Filename:"logs/{{project}}.log",
+		// MB
+		MaxSize:    100, 
+		// number of files
+		MaxBackups: 3,
+		// day
+		MaxAge:     28,
+		// if true output code line
+		Caller:true,
+		// file log level [debug info warn error dpanic panic fatal]
+		FileLevel: "debug",
+		// console file level [debug info warn error dpanic panic fatal]
+		ConsoleLevel: "debug",
+	},
+}

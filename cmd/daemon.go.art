@@ -1,0 +1,91 @@
+package cmd
+
+import (
+	"{{pkg}}/cmd/internal/daemon"
+	"{{pkg}}/configure"
+	"{{pkg}}/cookie"{{if db}}
+	"{{pkg}}/db/manipulator"{{/if}}
+	"{{pkg}}/logger"
+	"{{pkg}}/management"
+	"{{pkg}}/utils"
+	"log"
+
+	"github.com/spf13/cobra"
+)
+
+func init() {
+	var (
+		filename string
+		debug    bool
+		document bool
+		basePath = utils.BasePath()
+
+		addr string
+	)
+
+	cmd := &cobra.Command{
+		Use:   "daemon",
+		Short: "run as daemon",
+		Run: func(cmd *cobra.Command, args []string) {
+			// load configure
+			cnf := configure.DefaultConfigure()
+			e := cnf.Load(basePath, filename)
+			if e != nil {
+				log.Fatalln(e)
+			}
+			if addr != "" {
+				cnf.HTTP.Addr = addr
+			}{{if gateway}}
+			if document {
+				cnf.HTTP.Document = true
+			}{{/if}}
+			e = cnf.Format()
+			if e != nil {
+				log.Fatalln(e)
+			}
+
+			// init logger
+			e = logger.Init(basePath, &cnf.Logger)
+			if e != nil {
+				log.Fatalln(e)
+			}{{if db}}
+
+			// init db
+			manipulator.Init(){{/if}}
+
+			// init cookie
+			e = cookie.Init(cnf.Cookie.Filename, cnf.Cookie.MaxAge)
+			if e != nil {
+				log.Fatalln(e)
+			}
+
+			// enable module
+			management.DefaultManagement().Enable(cnf.Module.Enable)
+
+			// run
+			daemon.Run(debug)
+		},
+	}
+	flags := cmd.Flags()
+	flags.StringVarP(&filename, "config",
+		"c",
+		utils.Abs(basePath, "kc-epidemic.jsonnet"),
+		"configure file",
+	)
+	flags.StringVarP(&addr, "addr",
+		"a",
+		"",
+		"listen address",
+	)
+	flags.BoolVar(&document, "doc",
+		false,
+		"enable api document on uri '/document'",
+	)
+
+	flags.BoolVarP(&debug, "debug",
+		"d",
+		false,
+		"run as debug",
+	)
+	rootCmd.AddCommand(cmd)
+}

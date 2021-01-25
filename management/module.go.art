@@ -1,0 +1,34 @@
+package management
+
+import (
+	"encoding/json"
+
+	"google.golang.org/grpc"{{if gateway}}
+    "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"{{/if}}
+)
+
+// Module grpc module interface
+type Module interface {
+	// ID module id must lower case and unique
+	ID() string
+
+	// OnStart callback at before started 
+	OnStart(basePath string, data json.RawMessage)
+
+	// RegisterGRPC register grpc 
+	RegisterGRPC(srv *grpc.Server, middleware *Middleware) error{{if gateway}}
+	// RegisterGateway  register grpc-gateway
+	RegisterGateway(srv *runtime.ServeMux, clientConn *grpc.ClientConn) error{{/if}}
+
+	// OnReload callback when module should reload configure
+	OnReload(basePath string, data json.RawMessage, tag string) (e error)
+
+	// OnClearDBCache callback when module should clear db cache
+	OnClearDBCache(tag string) error
+
+	// OnClearCache callback when module should clear cache
+	OnClearCache(tag string) error
+
+	// OnStop callback at before stoped 
+	OnStop()
+}

@@ -1,0 +1,23 @@
+package main
+
+import (
+	// _ "{{pkg}}/assets/document/statik"
+	// _ "{{pkg}}/assets/en-US/statik"
+	// _ "{{pkg}}/assets/static/statik"
+	// _ "{{pkg}}/assets/zh-Hans/statik"
+	// _ "{{pkg}}/assets/zh-Hant/statik"
+	"{{pkg}}/cmd"
+	"log"
+
+	_ "github.com/golang/protobuf/proto"{{if db}}
+	_ "github.com/denisenkom/go-mssqldb"
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/mattn/go-sqlite3"{{/if}}
+)
+
+func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	if e := cmd.Execute(); e != nil {
+		log.Fatalln(e)
+	}
+}

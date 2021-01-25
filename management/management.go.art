@@ -1,0 +1,264 @@
+package management
+
+import (
+	"errors"
+	"fmt"
+	"{{pkg}}/configure"
+	"{{pkg}}/logger"
+	"strings"
+	"sync"
+
+	"go.uber.org/zap"
+	"google.golang.org/grpc"{{if gateway}}
+    "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"{{/if}}
+)
+
+const (
+	grpcPackage = `/{{grpcPrefix}}.`
+)
+
+var _defaultManagement = newManagement()
+
+// DefaultManagement return default management
+func DefaultManagement() *Management {
+	return _defaultManagement
+}
+func newManagement() *Management {
+	mt := &Management{
+		module: make(map[string]Module),
+	}
+	mt.ctxPool.New = newMD
+	mt.middleware.init()
+	return mt
+}
+
+// Management grpc module
+type Management struct {
+	noCopy  noCopy
+	ctxPool sync.Pool
+	middleware Middleware
+	module  map[string]Module
+	keys    map[string]Module
+	enable  []Module
+	sync.Mutex
+}
+
+// Middleware return Middleware instance
+func (m *Management) Middleware() *Middleware {
+	return &m.middleware
+}
+
+// ID return enabled module id
+func (m *Management) ID() (arrs []string) {
+	m.Lock()
+	defer m.Unlock()
+	if len(m.enable) != 0 {
+		arrs = make([]string, len(m.enable))
+		for i := 0; i < len(m.enable); i++ {
+			arrs[i] = m.enable[i].ID()
+		}
+	}
+	return arrs
+}
+
+// Register module
+func (m *Management) Register(module Module) {
+	m.Lock()
+	defer m.Unlock()
+
+	id := module.ID()
+	if id != strings.ToLower(id) {
+		panic(fmt.Sprint("module id must use lowercase letters :", id))
+	}
+	if _, ok := m.module[id]; ok {
+		panic(fmt.Sprint("module already exists :", id))
+	}
+	m.module[id] = module
+}
+
+// OnStart call enable module OnStart
+func (m *Management) OnStart() {
+	m.Lock()
+	defer m.Unlock()
+
+	module := m.enable
+	cnf := configure.DefaultConfigure()
+	for i := 0; i < len(module); i++ {
+		id := module[i].ID()
+		module[i].OnStart(cnf.BasePath(), cnf.GetModuleData(id))
+	}
+}
+
+// RegisterGRPC call enable module RegisterGRPC
+func (m *Management) RegisterGRPC(srv *grpc.Server) {
+	m.Lock()
+	defer m.Unlock()
+
+	module := m.enable
+	for i := 0; i < len(module); i++ {
+		module[i].RegisterGRPC(srv, &m.middleware)
+	}
+}{{if gateway}}
+// RegisterGateway call enable module RegisterGateway
+func (m *Management) RegisterGateway(mux *runtime.ServeMux, clientConn *grpc.ClientConn) (e error) {
+	m.Lock()
+	defer m.Unlock()
+
+	module := m.enable
+	for i := 0; i < len(module); i++ {
+		e = module[i].RegisterGateway(mux, clientConn)
+		if e != nil {
+			break
+		}
+	}
+	return
+}{{/if}}
+
+// OnStop call enable module OnStop
+func (m *Management) OnStop() {
+	m.Lock()
+	defer m.Unlock()
+
+	module := m.enable
+	for i := len(module)-1; i >=0 ; i-- {
+		module[i].OnStop()
+	}
+}
+
+// EnableAll enable all module
+func (m *Management) EnableAll() {
+	if len(m.module) == 0 {
+		return
+	}
+	modules := make([]string, 0, len(m.module))
+	for id := range m.module {
+		modules = append(modules, id)
+	}
+	m.Enable(modules)
+}
+
+// Enable enable module
+func (m *Management) Enable(modules []string) {
+	m.Lock()
+	defer m.Unlock()
+
+	keys := make(map[string]Module)
+	for i := 0; i < len(modules); i++ {
+		id := strings.ToLower(modules[i])
+		if _, ok := keys[id]; ok {
+			continue
+		}
+
+		if module, ok := m.module[id]; ok {
+			keys[id] = module
+			m.enable = append(m.enable, module)
+			if ce := logger.Logger.Check(zap.InfoLevel, "enable module"); ce != nil {
+				ce.Write(
+					zap.String("ID", id),
+				)
+			}
+		} else {
+			if ce := logger.Logger.Check(zap.WarnLevel, "module not support"); ce != nil {
+				ce.Write(
+					zap.String("ID", id),
+				)
+			}
+		}
+	}
+	m.keys = keys
+}
+
+// ClearDBCache call module ClearDBCache
+func (m *Management) ClearDBCache(id, tag string) (e error) {
+	m.Lock()
+	defer m.Unlock()
+
+	if id == "" {
+		var err []string
+		for i := 0; i < len(m.enable); i++ {
+			e = m.enable[i].OnClearDBCache(tag)
+			if e != nil {
+				err = append(err, fmt.Sprintf("%v:%v", m.enable[i].ID(), e))
+			}
+		}
+		if len(err) != 0 {
+			e = errors.New(
+				strings.Join(err, ";"),
+			)
+		}
+	} else {
+		for i := 0; i < len(m.enable); i++ {
+			if m.enable[i].ID() != id {
+				continue
+			}
+			e = m.enable[i].OnClearDBCache(tag)
+			break
+		}
+	}
+	return
+}
+
+// ClearCache call module ClearCache
+func (m *Management) ClearCache(id, tag string) (e error) {
+	m.Lock()
+	defer m.Unlock()
+
+	if id == "" {
+		var err []string
+		for i := 0; i < len(m.enable); i++ {
+			e = m.enable[i].OnClearCache(tag)
+			if e != nil {
+				err = append(err, fmt.Sprintf("%v:%v", m.enable[i].ID(), e))
+			}
+		}
+		if len(err) != 0 {
+			e = errors.New(
+				strings.Join(err, ";"),
+			)
+		}
+	} else {
+		for i := 0; i < len(m.enable); i++ {
+			if m.enable[i].ID() != id {
+				continue
+			}
+			e = m.enable[i].OnClearCache(tag)
+			break
+		}
+	}
+	return
+}
+
+// Reload call module Reload
+func (m *Management) Reload(id, tag string) (e error) {
+	m.Lock()
+	defer m.Unlock()
+
+	cnf, e := configure.Reload(id)
+	if e != nil {
+		return
+	}
+	if id == "" {
+		var err []string
+		for i := 0; i < len(m.enable); i++ {
+			id := m.enable[i].ID()
+			e = m.enable[i].OnReload(cnf.BasePath(), cnf.GetModuleData(id), tag)
+			if e != nil {
+				err = append(err, fmt.Sprintf("%v:%v", id, e))
+			}
+		}
+		if len(err) != 0 {
+			e = errors.New(
+				strings.Join(err, ";"),
+			)
+		}
+	} else {
+		for i := 0; i < len(m.enable); i++ {
+			if m.enable[i].ID() != id {
+				continue
+			}
+			e = m.enable[i].OnReload(cnf.BasePath(), cnf.GetModuleData(id), tag)
+			break
+		}
+	}
+	return
+}
