@@ -46,6 +46,7 @@ class Metadata {
                 }
                 else if (v == 'gin') {
                     this.gin = true;
+                    this.gateway = true;
                 }
                 else if (v == 'db') {
                     this.db = true;
@@ -65,11 +66,20 @@ class Metadata {
 }
 function jsgenerate(context) {
     const md = new Metadata(context.pkg, context.name, context.tag);
+    const prefix = ['.git' + path_1.sep];
     const exclude = ['.git'];
     if (!md.db) {
         exclude.push(path_1.join('configure', 'db.go'));
     }
-    const nameService = new helper_1.NameService(context.output, new helper_1.Exclude(['.git/'], [], exclude)).rename(`${md.project}.jsonnet`, `example.jsonnet`, `bin`);
+    if (!md.gateway) {
+        exclude.push(path_1.join('cmd', 'internal', 'daemon', 'proxy.go'));
+    }
+    if (!md.gin) {
+        prefix.push('web' + path_1.sep);
+        exclude.push('web');
+        exclude.push(path_1.join('cmd', 'internal', 'daemon', 'gin.go'));
+    }
+    const nameService = new helper_1.NameService(context.output, new helper_1.Exclude(prefix, [], exclude)).rename(`${md.project}.jsonnet`, `example.jsonnet`, `bin`);
     context.serve(async function (name, src, stat) {
         if (nameService.checkExclude(name)) {
             return;

@@ -8,8 +8,7 @@ import (
 	// _ "{{pkg}}/assets/zh-Hant/statik"
 	"{{pkg}}/cmd"
 	"log"
-
-	_ "github.com/golang/protobuf/proto"{{if db}}
+{{if db}}
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mattn/go-sqlite3"{{/if}}

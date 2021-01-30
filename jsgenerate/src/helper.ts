@@ -61,7 +61,7 @@ export class NameService {
             if (name.endsWith('.art')) {
                 name = name.substr(0, name.length - 4)
             }
-            return this.exclude.check(name.replace("\\", "/"))
+            return this.exclude.check(name)
         }
         return false
     }

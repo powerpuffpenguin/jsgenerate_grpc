@@ -1,5 +1,136 @@
 package daemon
 
+import (
+	"context"
+	"fmt"
+	"{{pkg}}/configure"
+	"{{pkg}}/logger"
+	"{{pkg}}/management"
+	"strings"
+	"time"
+{{if gin}}
+	"github.com/gin-gonic/gin"{{/if}}
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
+	"google.golang.org/grpc/status"
+)
+
+const (
+	colorReset = "\033[0m"
+
+	colorRed    = "\033[31m"
+	colorGreen  = "\033[32m"
+	colorYellow = "\033[33m"
+	colorBlue   = "\033[34m"
+	colorPurple = "\033[35m"
+	colorCyan   = "\033[36m"
+	colorWhite  = "\033[37m"
+
+	format = `2006/01/02 - 15:04:05`
+)
+
 // Run run as deamon
 func Run(debug bool) {
+	middleware := management.DefaultManagement().Middleware()
+	// 爲grpc註冊全局 中間件
+	if debug {
+		middleware.
+			UnaryInterceptor(
+				unaryLog,
+			).
+			StreamInterceptor(
+				streamLog,
+			)
+	}
+	middleware.UnaryInterceptor(
+		unaryPanic,
+	).StreamInterceptor(
+		streamPanic,
+	)
+	cnf := configure.DefaultConfigure().HTTP.Replay
+	if cnf.Mode != `disabled` {
+		reply := newReplay(cnf.Mode == `force`, cnf.Duration, cnf.Max)
+		middleware.UnaryInterceptor(
+			reply.unary,
+		).StreamInterceptor(
+			reply.stream,
+		)
+		if ce := logger.Logger.Check(zap.InfoLevel, `reply`); ce != nil {
+			ce.Write(
+				zap.Duration(`duration`, cnf.Duration),
+				zap.Int(`max`, cnf.Max),
+			)
+		}
+	}{{if gin}}
+	if !debug {
+		gin.SetMode(gin.ReleaseMode)
+	}{{/if}}
+
+	runGRPC()
+}
+func printLog(ctx context.Context, at time.Time, fullMethod string, e error, stream bool) {
+	var addr string
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		strs := md.Get(`x-forwarded-for`)
+		if strs != nil {
+			addr = strings.Join(strs, `,`)
+		}
+	}
+	if addr == `` {
+		if pr, ok := peer.FromContext(ctx); ok {
+			addr = pr.Addr.String()
+		}
+	}
+
+	fmt.Print(`[GRPC] `, time.Now().Format(format), ` | `,
+		time.Since(at), ` | `,
+	)
+	if e == nil {
+		fmt.Print(colorGreen, `success`, colorReset)
+	} else {
+		fmt.Print(colorRed, e, colorReset)
+	}
+	fmt.Print(` | `, addr, ` | `)
+	if stream {
+		fmt.Print(colorYellow, `stream`, colorReset)
+	} else {
+		fmt.Print(colorYellow, `unary`, colorReset)
+	}
+	fmt.Println(" ->", fullMethod)
+}
+func unaryLog(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (response interface{}, e error) {
+	at := time.Now()
+	response, e = handler(ctx, req)
+	printLog(ctx, at, info.FullMethod, e, false)
+	return
+}
+func streamLog(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (e error) {
+	at := time.Now()
+	ctx := ss.Context()
+	e = handler(srv, ss)
+	printLog(ctx, at, info.FullMethod, e, true)
+	return
+}
+
+func unaryPanic(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (response interface{}, e error) {
+	defer func() {
+		if err := recover(); err != nil {
+			e = status.Error(codes.Internal, fmt.Sprint(err))
+		}
+	}()
+	response, e = handler(ctx, req)
+	return
+}
+func streamPanic(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (e error) {
+	defer func() {
+		if err := recover(); err != nil {
+			e = status.Error(codes.Internal, fmt.Sprint(err))
+		}
+	}()
+	e = handler(srv, ss)
+	return
 }

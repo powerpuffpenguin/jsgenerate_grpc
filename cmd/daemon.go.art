@@ -16,8 +16,8 @@ import (
 func init() {
 	var (
 		filename string
-		debug    bool
-		document bool
+		debug    bool{{if gin}}
+		document bool{{/if}}
 		basePath = utils.BasePath()
 
 		addr string
@@ -35,7 +35,7 @@ func init() {
 			}
 			if addr != "" {
 				cnf.HTTP.Addr = addr
-			}{{if gateway}}
+			}{{if gin}}
 			if document {
 				cnf.HTTP.Document = true
 			}{{/if}}
@@ -54,7 +54,10 @@ func init() {
 			manipulator.Init(){{/if}}
 
 			// init jwt
-			e = jwt.Init(cnf.JWT.Filename, cnf.JWT.Access, cnf.JWT.Refresh)
+			e = jwt.Init(cnf.JWT.Filename,
+				cnf.JWT.Access, cnf.JWT.Refresh,
+				cnf.JWT.TouristAccess, cnf.JWT.TouristRefresh,
+			)
 			if e != nil {
 				log.Fatalln(e)
 			}
@@ -76,11 +79,11 @@ func init() {
 		"a",
 		"",
 		"listen address",
-	)
+	){{if gin}}
 	flags.BoolVar(&document, "doc",
 		false,
 		"enable api document on uri '/document'",
-	)
+	){{/if}}
 
 	flags.BoolVarP(&debug, "debug",
 		"d",

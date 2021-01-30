@@ -23,6 +23,7 @@ type Session struct {
 	// salt for encryption
 	Salt    string `json:"salt,omitempty"`
 	Tourist bool   `json:"tourist,omitempty"`
+	Access  bool   `json:"access,omitempty"`
 }
 
 // Who .
@@ -35,28 +36,58 @@ func (s *Session) Who() string {
 
 // AccessToken return access token string
 func (s *Session) AccessToken() (string, error) {
-	at := time.Now()
+	var (
+		at        = time.Now()
+		expiresAt time.Time
+		subject   string
+		backup    = s.Access
+	)
+	s.Access = true
+	if s.Tourist {
+		expiresAt = at.Add(_touristAccess)
+		subject = `tourist access`
+	} else {
+		expiresAt = at.Add(_access)
+		subject = `access`
+	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &sessionClaims{
 		Session: *s,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: at.Add(_access).Unix(),
-			Subject:   `access`,
+			ExpiresAt: expiresAt.Unix(),
+			Subject:   subject,
 		},
 	})
-	return token.SignedString(_key)
+	tokenString, e := token.SignedString(_key)
+	s.Access = backup
+	return tokenString, e
 }
 
 // RefreshToken return refresh token string
 func (s *Session) RefreshToken() (string, error) {
-	at := time.Now()
+	var (
+		at        = time.Now()
+		expiresAt time.Time
+		subject   string
+		backup    = s.Access
+	)
+	s.Access = false
+	if s.Tourist {
+		expiresAt = at.Add(_touristRefresh)
+		subject = `tourist refresh`
+	} else {
+		expiresAt = at.Add(_refresh)
+		subject = `refresh`
+	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &sessionClaims{
 		Session: *s,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: at.Add(_refresh).Unix(),
-			Subject:   `refresh`,
+			ExpiresAt: expiresAt.Unix(),
+			Subject:   subject,
 		},
 	})
-	return token.SignedString(_key)
+	tokenString, e := token.SignedString(_key)
+	s.Access = backup
+	return tokenString, e
 }
 
 // IsRoot if user is root return true

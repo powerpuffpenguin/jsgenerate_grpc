@@ -1,0 +1,215 @@
+package web
+
+import (
+	"fmt"
+	"{{pkg}}/db/jwt"
+	"{{pkg}}/logger"
+	"{{pkg}}/web/contrib/compression"
+	"net/http"
+	"reflect"
+	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/gorilla/websocket"
+	"go.uber.org/zap"
+)
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
+// Offered accept Offered
+var Offered = []string{
+	binding.MIMEJSON,
+	binding.MIMEXML,
+	binding.MIMEYAML,
+}
+var _compression = compression.Compression(compression.BrDefaultCompression,
+	compression.GzDefaultCompression,
+)
+
+// Helper impl
+type Helper struct {
+}
+
+// NegotiateData .
+func (h Helper) NegotiateData(c *gin.Context, code int, data interface{}) {
+	switch c.NegotiateFormat(Offered...) {
+	case binding.MIMEXML:
+		c.XML(code, data)
+	case binding.MIMEYAML:
+		c.YAML(code, data)
+	default:
+		// default use json
+		c.JSON(code, data)
+	}
+}
+
+// BindURI .
+func (h Helper) BindURI(c *gin.Context, obj interface{}) (e error) {
+	e = c.ShouldBindUri(obj)
+	if e != nil {
+		h.NegotiateError(c, http.StatusBadRequest, e)
+		return
+	}
+	return
+}
+
+// NegotiateError .
+func (h Helper) NegotiateError(c *gin.Context, code int, e error) {
+	c.String(code, e.Error())
+}
+
+// NegotiateErrorString .
+func (h Helper) NegotiateErrorString(c *gin.Context, code int, e string) {
+	c.String(code, e)
+}
+
+// Bind .
+func (h Helper) Bind(c *gin.Context, obj interface{}) error {
+	b := binding.Default(c.Request.Method, c.ContentType())
+	return h.BindWith(c, obj, b)
+}
+
+// BindWith .
+func (h Helper) BindWith(c *gin.Context, obj interface{}, b binding.Binding) (e error) {
+	e = c.ShouldBindWith(obj, b)
+	if e != nil {
+		h.NegotiateError(c, http.StatusBadRequest, e)
+		return
+	}
+	return
+}
+
+// ShouldBindSession .
+func (h Helper) ShouldBindSession(c *gin.Context) (session *jwt.Session, e error) {
+	v, exists := c.Get(`session`)
+	if exists {
+		if v == nil {
+			return
+		} else if tmp, ok := v.(error); ok {
+			e = tmp
+			return
+		} else if tmp, ok := v.(*jwt.Session); ok {
+			session = tmp
+			return
+		}
+		if ce := logger.Logger.Check(zap.ErrorLevel, `unknow session type`); ce != nil {
+			ce.Write(
+				zap.String(`method`, c.Request.Method),
+				zap.String(`session`, fmt.Sprint(session)),
+				zap.String(`session type`, fmt.Sprint(reflect.TypeOf(session))),
+			)
+		}
+		return
+	}
+	token, e := h.getToken(c)
+	if e != nil {
+		return
+	} else if !strings.HasPrefix(token, `Bearer `) {
+		c.Set(`session`, nil)
+		return
+	}
+	session, e = jwt.FromToken(token[7:])
+	if e == nil {
+		c.Set(`session`, session)
+	} else {
+		c.Set(`session`, e)
+	}
+	return
+}
+func (h Helper) getTokenFromURI(c *gin.Context) (value string) {
+	var obj struct {
+		Authorization string `uri:"authorization"`
+	}
+	e := c.ShouldBindUri(&obj)
+	if e != nil {
+		return
+	}
+	value = obj.Authorization
+	return
+}
+func (h Helper) getToken(c *gin.Context) (value string, e error) {
+	value = c.GetHeader("Authorization")
+	if value != "" {
+		return
+	}
+	value = h.getTokenFromURI(c)
+	if value != "" {
+		return
+	}
+
+	if c.Request.Method != `GET` && c.Request.Method != `HEADER` {
+		return
+	}
+	var obj struct {
+		Authorization string `form:"authorization"`
+	}
+	e = c.ShouldBindQuery(&obj)
+	if e != nil {
+		return
+	}
+	value = obj.Authorization
+	return
+}
+
+// BindSession .
+func (h Helper) BindSession(c *gin.Context) (result *jwt.Session) {
+	session, e := h.ShouldBindSession(c)
+	if e != nil {
+		h.NegotiateError(c, http.StatusUnauthorized, e)
+		return
+	} else if session == nil {
+		h.NegotiateErrorString(c, http.StatusUnauthorized, `session miss`)
+		return
+	}
+	result = session
+	return
+}
+
+// CheckWebsocket .
+func (h Helper) CheckWebsocket(c *gin.Context) {
+	if !c.IsWebsocket() {
+		c.Abort()
+		return
+	}
+}
+
+// CheckSignedin .
+func (h Helper) CheckSignedin(c *gin.Context) {
+	session := h.BindSession(c)
+	if session == nil || session.Tourist || !session.Access {
+		c.Abort()
+		return
+	}
+}
+
+// CheckRoot .
+func (h Helper) CheckRoot(c *gin.Context) {
+	session := h.BindSession(c)
+	if session == nil {
+		c.Abort()
+		return
+	}
+	if session.Tourist || !session.Access || !session.IsRoot() {
+		c.Abort()
+		return
+	}
+}
+
+// BindQuery .
+func (h Helper) BindQuery(c *gin.Context, obj interface{}) error {
+	return h.BindWith(c, obj, binding.Query)
+}
+
+// Compression .
+func (h Helper) Compression() gin.HandlerFunc {
+	return _compression
+}
+
+// Upgrade .
+func (h Helper) Upgrade(w http.ResponseWriter, r *http.Request, responseHeader http.Header) (*websocket.Conn, error) {
+	return upgrader.Upgrade(w, r, responseHeader)
+}

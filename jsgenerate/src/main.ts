@@ -1,7 +1,7 @@
 import { Context } from "./context";
 import { promises, constants } from "fs";
 import { Exclude, NameService } from "./helper";
-import { join } from "path";
+import { join, sep } from "path";
 export const tag = 'all gateway gin db view'
 export const description = 'google grpc frame template'
 async function exists(filename: string): Promise<boolean> {
@@ -52,6 +52,7 @@ class Metadata {
                     this.gateway = true
                 } else if (v == 'gin') {
                     this.gin = true
+                    this.gateway = true
                 } else if (v == 'db') {
                     this.db = true
                 } else if (v == 'view') {
@@ -63,13 +64,22 @@ class Metadata {
 }
 export function jsgenerate(context: Context) {
     const md = new Metadata(context.pkg, context.name, context.tag)
+    const prefix = ['.git' + sep]
     const exclude = ['.git']
     if (!md.db) {
         exclude.push(join('configure', 'db.go'))
     }
+    if (!md.gateway) {
+        exclude.push(join('cmd', 'internal', 'daemon', 'proxy.go'))
+    }
+    if (!md.gin) {
+        prefix.push('web' + sep)
+        exclude.push('web')
+        exclude.push(join('cmd', 'internal', 'daemon', 'gin.go'))
+    }
     const nameService = new NameService(context.output,
         new Exclude(
-            ['.git/'],
+            prefix,
             [],
             exclude,
         ),

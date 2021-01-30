@@ -13,6 +13,10 @@ type JWT struct {
 	Access	time.Duration
 	// refresh token expiration duration
 	Refresh	time.Duration
+	// tourist access token expiration duration
+	TouristAccess	time.Duration
+	// tourist refresh token expiration duration
+	TouristRefresh	time.Duration
 }
 
 // Format .
@@ -30,6 +34,16 @@ func (j *JWT) Format(basePath string) (e error) {
 		j.Refresh = time.Hour * 24
 	} else {
 		j.Refresh *= time.Millisecond
+	}
+	if j.TouristAccess < 1000 * 60 {
+		j.TouristAccess = time.Hour * 24
+	} else {
+		j.TouristAccess *= time.Millisecond
+	}
+	if j.TouristRefresh < 1000 * 60 {
+		j.TouristRefresh = time.Hour * 24
+	} else {
+		j.TouristRefresh *= time.Millisecond
 	}
 	return
 }

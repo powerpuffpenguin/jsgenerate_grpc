@@ -1,0 +1,55 @@
+package daemon
+
+import (
+	"net/http"
+
+	"{{pkg}}/configure"
+	"{{pkg}}/web/api"
+//	"{{pkg}}/web/document"
+//	"{{pkg}}/web/static"
+//	"{{pkg}}/web/view"
+	"{{pkg}}/web"
+	"strings"
+
+	"github.com/gin-gonic/gin"
+)
+
+type httpService struct {
+	router *gin.Engine
+}
+
+func newHTTPService() *httpService {
+	router := gin.Default()
+	rs := []web.IHelper{
+		api.Helper{},
+//		static.Helper{},
+//		view.Helper{},
+	}
+	if configure.DefaultConfigure().HTTP.Document {
+//		rs = append(rs, document.Helper{})
+	}
+	for _, r := range rs {
+		r.Register(&router.RouterGroup)
+	}
+	return &httpService{
+		router: router,
+	}
+}
+
+// CheckHTTP .
+func (s *httpService) CheckHTTP(r *http.Request) bool {
+	header := r.Header
+	if r.Method == "GET" &&
+		strings.Contains(strings.ToLower(header.Get("Connection")), "upgrade") &&
+		strings.EqualFold(header.Get("Upgrade"), "websocket") {
+		return true
+	}
+	path := r.URL.Path
+	if strings.HasPrefix(path, `/api/v1/features`) {
+		return false
+	}
+	return true
+}
+func (s *httpService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.router.ServeHTTP(w, r)
+}

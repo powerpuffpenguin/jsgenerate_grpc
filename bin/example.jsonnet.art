@@ -15,7 +15,7 @@ local GB = 1024*MB;
 		// CertFile: "test.pem",
 		// KeyFile: "test.key",
 		// http body limit default 32k
-		MaxBytesReader: KB*32,{{if gateway}}
+		MaxBytesReader: KB*32,{{if gin}}
 		// if true display RESTful api on uri /document
 		Document: false,{{/if}}
 		// * unix request timestamp
@@ -57,6 +57,10 @@ local GB = 1024*MB;
 		Access: Day,
 		// refresh token expiration duration
 		Refresh: Day,
+		// tourist access token expiration duration
+		TouristAccess: Day * 365,
+		// tourist refresh token expiration duration
+		TouristRefresh: Day * 365,
 	},{{if db}}
 	DB: {
 		// driver [mysql mssql sqlite3]

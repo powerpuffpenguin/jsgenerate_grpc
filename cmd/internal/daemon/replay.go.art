@@ -46,9 +46,9 @@ func newReplay(force bool, duration time.Duration, max int) *replay {
 	)
 
 	if force {
-		logger.Logger.Info(`feplay force`)
+		logger.Logger.Info(`replay force`)
 	} else {
-		logger.Logger.Info(`feplay auto`)
+		logger.Logger.Info(`replay auto`)
 	}
 	return &replay{
 		force:    force,

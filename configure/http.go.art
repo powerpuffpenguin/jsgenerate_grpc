@@ -13,7 +13,7 @@ type HTTP struct {
 	CertFile string
 	KeyFile  string
 
-	MaxBytesReader int64{{if gateway}}
+	MaxBytesReader int64{{if gin}}
 
 	Document bool{{/if}}
 	Replay   Replay

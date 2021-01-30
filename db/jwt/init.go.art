@@ -14,12 +14,14 @@ import (
 )
 
 var _key []byte
-var _access, _refresh time.Duration
+var _access, _refresh, _touristAccess, _touristRefresh time.Duration
 
 // Init key
-func Init(filename string, access, refresh time.Duration) (e error) {
+func Init(filename string, access, refresh, touristAccess, touristRefresh time.Duration) (e error) {
 	_access = access
 	_refresh = refresh
+	_touristAccess = touristAccess
+	_touristRefresh = touristRefresh
 	b, e := ioutil.ReadFile(filename)
 	if e != nil {
 		if os.IsNotExist(e) {
