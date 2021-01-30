@@ -1,0 +1,117 @@
+package document
+
+import (
+	"html/template"
+	"io/ioutil"
+	"{{pkg}}/logger"
+	"{{pkg}}/management"
+	"{{pkg}}/web"
+	"net/http"
+	"os"
+	"sort"
+
+	"github.com/gin-gonic/gin"
+	"github.com/rakyll/statik/fs"
+	"go.uber.org/zap"
+)
+
+// BaseURL request base url
+const BaseURL = `document`
+
+// Helper path of /document
+type Helper struct {
+	web.Helper
+}
+
+var filesystem http.FileSystem
+
+// Register impl IHelper
+func (h Helper) Register(router *gin.RouterGroup) {
+	var e error
+	filesystem, e = fs.NewWithNamespace(`document`)
+	if e != nil {
+		if ce := logger.Logger.Check(zap.FatalLevel, `New FileSystem error`); ce != nil {
+			ce.Write(
+				zap.Error(e),
+				zap.String(`namespace`, `document`),
+			)
+		}
+		os.Exit(1)
+	}
+	r := router.Group(BaseURL)
+	r.Use(h.Compression())
+	r.GET(`*path`, h.view)
+}
+func (h Helper) view(c *gin.Context) {
+	var obj struct {
+		Path string `uri:"path" `
+	}
+	e := h.BindURI(c, &obj)
+	if e != nil {
+		return
+	}
+	if obj.Path == `/` || obj.Path == `index.html` {
+		h.readerHTML(c)
+		return
+	}
+	c.Header("Cache-Control", "max-age=31536000")
+	h.NegotiateFilesystem(c, filesystem, obj.Path)
+}
+func (h Helper) readerHTML(c *gin.Context) {
+	f, e := filesystem.Open(`/index.html`)
+	if e != nil {
+		h.NegotiateError(c, http.StatusInternalServerError, e)
+		return
+	}
+	defer f.Close()
+	b, e := ioutil.ReadAll(f)
+	if e != nil {
+		h.NegotiateError(c, http.StatusInternalServerError, e)
+		return
+	}
+
+	t := template.New("fieldname example")
+	t, e = t.Parse(string(b))
+	if e != nil {
+		h.NegotiateError(c, http.StatusInternalServerError, e)
+		return
+	}
+	mt := management.DefaultManagement()
+	items := mt.ID()
+
+	sort.Sort(sortString(items))
+
+	c.Render(http.StatusOK, &_Render{
+		t:     t,
+		items: items,
+	})
+}
+
+type sortString []string
+
+func (a sortString) Len() int           { return len(a) }
+func (a sortString) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a sortString) Less(i, j int) bool { return a[i] < a[j] }
+
+var plainContentType = []string{"text/html; charset=utf-8"}
+
+type _Node struct {
+}
+type _Render struct {
+	t     *template.Template
+	items []string
+}
+
+func (r *_Render) Render(w http.ResponseWriter) error {
+	r.WriteContentType(w)
+	items := r.items
+	return r.t.Execute(w, items)
+}
+
+// WriteContentType writes custom ContentType.
+func (r *_Render) WriteContentType(w http.ResponseWriter) {
+	header := w.Header()
+	if val := header["Content-Type"]; len(val) == 0 {
+		header["Content-Type"] = plainContentType
+	}
+}

@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible{{if gin}}
+	github.com/rakyll/statik v0.1.7
 	github.com/gorilla/websocket v1.4.2
 	github.com/andybalholm/brotli v1.0.1
 	github.com/gin-gonic/gin v1.6.3{{/if}}
@@ -17,8 +18,8 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.6.1 // indirect
 	go.uber.org/zap v1.16.0
-	golang.org/x/net v0.0.0-20201224014010-6772e930b67b // indirect
-	google.golang.org/genproto v0.0.0-20210114201628-6edceaf6022f // indirect
+	golang.org/x/net v0.0.0-20201224014010-6772e930b67b
+	google.golang.org/genproto v0.0.0-20210114201628-6edceaf6022f
 	google.golang.org/grpc v1.35.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0

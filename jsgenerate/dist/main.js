@@ -77,6 +77,8 @@ function jsgenerate(context) {
     if (!md.gin) {
         prefix.push('web' + path_1.sep);
         exclude.push('web');
+        prefix.push('static' + path_1.sep);
+        exclude.push('static');
         exclude.push(path_1.join('cmd', 'internal', 'daemon', 'gin.go'));
     }
     const nameService = new helper_1.NameService(context.output, new helper_1.Exclude(prefix, [], exclude)).rename(`${md.project}.jsonnet`, `example.jsonnet`, `bin`);

@@ -75,6 +75,8 @@ export function jsgenerate(context: Context) {
     if (!md.gin) {
         prefix.push('web' + sep)
         exclude.push('web')
+        prefix.push('static' + sep)
+        exclude.push('static')
         exclude.push(join('cmd', 'internal', 'daemon', 'gin.go'))
     }
     const nameService = new NameService(context.output,

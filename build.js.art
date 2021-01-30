@@ -1,0 +1,52 @@
+#!/usr/bin/env node
+"use strict";
+"use strict";
+const { Command } = require('./build-js/commander')
+const TargetName = '{{project}}'
+
+const program = new Command('./build.js')
+program.command('linux')
+    .description('build code to linux')
+    .option('--arch [amd64,386]', 'GOARCH default use amd64')
+    .option('--debug', 'build as debug')
+    .action(function () {
+        const opts = this.opts()
+        let arch = opts['arch']
+        if (arch === undefined) {
+            arch = 'amd64'
+        }
+
+        const { Target } = require('./build-js/helper')
+        const taget = new Target('linux', arch, '')
+        taget.build(TargetName, opts['debug'])
+    })
+
+program.command('windows')
+    .description('build code to windows')
+    .option('--arch [amd64,386]', 'GOARCH default use amd64')
+    .option('--debug', 'build as debug')
+    .action(function () {
+        const opts = this.opts()
+        let arch = opts['arch']
+        if (arch === undefined) {
+            arch = 'amd64'
+        }
+
+        const { Target } = require('./build-js/helper')
+        const taget = new Target('linux', arch, '')
+        taget.build(TargetName, opts['debug'])
+    })
+
+program.command('grpc')
+    .description('build *.proto to grpc code')
+    .action(() => {
+        console.log('grpc')
+    }){{if gin}}
+
+program.command('source')
+    .description('build static source to golang code')
+    .action(() => {
+        console.log('source')
+    }){{/if}}
+
+program.parse(process.argv)
