@@ -28,19 +28,13 @@ Build(program, 'windows', Arch,
     `${Name}.jsonnet`,
 )
 
-program.command('grpc')
-    .description('build *.proto to grpc code')
-    .action(() => {
-        console.log('grpc')
-    }){{if gin}}
-
+{{if gin}}
 program.command('source')
     .description('build static source to golang code')
     .action(() => {
         console.log('source')
     }){{/if}}
 
-
 BuildTest(program, '{{pkg}}', TestUnit, TestBench)
-BuildGRPC(program, '{{uuid}}')
+BuildGRPC(program, '{{uuid}}', {{gateway}})
 program.parse(process.argv)

@@ -38,3 +38,6 @@ export function Append(items: Array<any>, ...elems: Array<any>) {
     obj.push(...elems)
     return obj
 }
+export async function ClearDirectory(filename: string): Promise<void> {
+
+}
