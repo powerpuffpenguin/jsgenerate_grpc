@@ -1,49 +1,11 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const child_process = require('child_process');
-const { join, normalize } = require('path');
-exports.Build = void 0;
-exports.Append = void 0;
-exports.BuildTest = void 0;
-exports.BuildGRPC = void 0;
-function getEnv(obj) {
-    const env = {}
-    for (const k in process.env) {
-        env[k] = process.env[k]
-    }
-    if (obj) {
-        for (const k in obj) {
-            env[k] = obj[k]
-        }
-    }
-    return env
-}
-/**
- * 
- * @param {string} file 
- * @param {ReadonlyArray<string> | undefined | null} args 
- * @param {child_process.ExecFileOptions} opts 
- */
-function execFile(file, args, opts) {
-    return new Promise((resolve, reject) => {
-        child_process.execFile(file, args, opts, (e, stdout, stderr) => {
-            process.stdout.write(stdout)
-            process.stderr.write(stderr)
-            if (e) {
-                reject(e)
-            } else {
-                resolve()
-            }
-        })
-    })
-}
+import { join, normalize } from 'path';
+import { Append, Env, ExecFile } from './utils';
+import { Command } from '../commander'
 class Target {
-    constructor(os, arch, name, ext, debug) {
-        this.os = os
-        this.arch = arch
-        this.ext = ext
-        this.name = name
-        this.debug = debug
+    private name_ = ''
+    constructor(public readonly os: string, public readonly arch: string,
+        public readonly name: string, public readonly ext: string,
+        public readonly debug: boolean) {
         if (debug) {
             this.name_ = name + 'd'
         } else {
@@ -56,16 +18,16 @@ class Target {
     build() {
         const name = join('bin', this.name_)
         console.log(`go build -o "${name}"`)
-        const env = getEnv({
+        const env = Env({
             GOOS: this.os,
             GOARCH: this.arch,
         })
-        return execFile(`go`, ['build', '-o', name], {
-            cwd: normalize(join(__dirname, '..')),
+        return ExecFile(`go`, ['build', '-o', name], {
+            cwd: normalize(join(__dirname, '..', '..')),
             env: env,
         })
     }
-    pack(algorithm, ...names) {
+    pack(algorithm: string, ...names: Array<string>) {
         if (typeof algorithm === "string") {
             let output = `${this.os}-${this.arch}`
             let file
@@ -105,13 +67,16 @@ class Target {
                 args.push(names[i])
             }
             console.log(file, ...args)
-            return execFile(file, args, {
-                cwd: normalize(join(__dirname, '..', 'bin')),
+            return ExecFile(file, args, {
+                cwd: normalize(join(__dirname, '..', '..', 'bin')),
             })
         }
     }
 }
-function Build(program, os, arch, name, ext, ...packs) {
+export function Build(program: Command,
+    os: string, arch: Array<string>,
+    name: string, ext: string,
+    ...packs: Array<string>) {
     const pack = '7z gz bz2 xz zip'
     program.command(os)
         .description(`build code to ${os}`)
@@ -129,30 +94,23 @@ function Build(program, os, arch, name, ext, ...packs) {
                 return taget.pack(opts['pack'],
                     ...packs,
                 )
-            }).catch((e) => {
-                console.warn(e)
+            }).catch(() => {
                 process.exit(1)
             })
         })
 }
-function Append(items, ...elems) {
-    const obj = []
-    obj.push(...items)
-    obj.push(...elems)
-    return obj
-}
-async function test(pkg, args, ...names) {
-    const cwd = normalize(join(__dirname, '..'))
+async function test(pkg: string, args: Array<string>, ...names: Array<string>) {
+    const cwd = normalize(join(__dirname, '..', '..'))
     for (let i = 0; i < names.length; i++) {
         const name = names[i]
         if (name.length > 0) {
-            await execFile('go', Append(args, `${pkg}/${name}`), {
+            await ExecFile('go', Append(args, `${pkg}/${name}`), {
                 cwd: cwd,
             })
         }
     }
 }
-function BuildTest(program, pkg, unit, bench) {
+export function BuildTest(program: Command, pkg: string, unit: Array<string>, bench: Array<string>) {
     program.command('test')
         .description(`run go test`)
         .option(`-v`, 'prints the full')
@@ -165,6 +123,7 @@ function BuildTest(program, pkg, unit, bench) {
                 args.push('-v')
             }
             const run = opts['Run']
+            let names = bench
             if (opts['bench']) {
                 if (typeof run === "string") {
                     args.push(`-run=^$`)
@@ -175,33 +134,15 @@ function BuildTest(program, pkg, unit, bench) {
                 } else {
                     args.push('.')
                 }
-                test(pkg, args, ...bench)
+
             } else {
                 if (typeof run === "string") {
                     args.push(`-run=${run}`)
                 }
-                test(pkg, args, ...unit)
+                names = unit
             }
+            test(pkg, args, ...names).catch(() => {
+                process.exit(1)
+            })
         })
 }
-
-class GRPC {
-    constructor(language, uuid) {
-        this.language = language
-        this.uuid = uuid
-    }
-}
-function BuildGRPC(program, uuid) {
-    program.command('grpc')
-        .description('build *.proto to grpc code')
-        .option('-l,--language [go dart]', 'grpc target language')
-        .action(function () {
-            const opts = this.opts()
-            const grpc = new GRPC(opts['language'], uuid)
-            console.log(grpc)
-        })
-}
-exports.Build = Build;
-exports.Append = Append;
-exports.BuildTest = BuildTest;
-exports.BuildGRPC = BuildGRPC;
