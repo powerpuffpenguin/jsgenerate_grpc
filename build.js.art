@@ -1,41 +1,30 @@
 #!/usr/bin/env node
 "use strict";
-"use strict";
-const { Command } = require('./build-js/commander')
-const TargetName = '{{project}}'
-
+const { Command } = require('./js-build/commander')
+const { Append, Build, BuildTest } = require('./js-build/helper')
+const Name = '{{project}}'
+const TestBench = [
+    'utils'
+]
+const TestUnit = Append(TestBench)
 const program = new Command('./build.js')
-program.command('linux')
-    .description('build code to linux')
-    .option('--arch [amd64,386]', 'GOARCH default use amd64')
-    .option('--debug', 'build as debug')
-    .action(function () {
-        const opts = this.opts()
-        let arch = opts['arch']
-        if (arch === undefined) {
-            arch = 'amd64'
-        }
-
-        const { Target } = require('./build-js/helper')
-        const taget = new Target('linux', arch, '')
-        taget.build(TargetName, opts['debug'])
-    })
-
-program.command('windows')
-    .description('build code to windows')
-    .option('--arch [amd64,386]', 'GOARCH default use amd64')
-    .option('--debug', 'build as debug')
-    .action(function () {
-        const opts = this.opts()
-        let arch = opts['arch']
-        if (arch === undefined) {
-            arch = 'amd64'
-        }
-
-        const { Target } = require('./build-js/helper')
-        const taget = new Target('linux', arch, '')
-        taget.build(TargetName, opts['debug'])
-    })
+const Arch = ['amd64', '386']
+Build(program, 'linux', Arch,
+    Name, '',
+    `${Name}.jsonnet`,
+)
+Build(program, 'freebsd', Arch,
+    Name, '',
+    `${Name}.jsonnet`,
+)
+Build(program, 'darwin', Arch,
+    Name, '',
+    `${Name}.jsonnet`,
+)
+Build(program, 'windows', Arch,
+    Name, '.exe',
+    `${Name}.jsonnet`,
+)
 
 program.command('grpc')
     .description('build *.proto to grpc code')
@@ -48,5 +37,8 @@ program.command('source')
     .action(() => {
         console.log('source')
     }){{/if}}
+
+
+BuildTest(program, '{{pkg}}', TestUnit, TestBench)
 
 program.parse(process.argv)
