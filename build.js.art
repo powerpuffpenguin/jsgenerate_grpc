@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 "use strict";
 const { Command } = require('./js-build/commander')
-const { Append, Build, BuildTest } = require('./js-build/helper')
+const { Append, Build, BuildTest, BuildGRPC } = require('./js-build/helper')
 const Name = '{{project}}'
 const TestBench = [
     'utils'
@@ -40,5 +40,5 @@ program.command('source')
 
 
 BuildTest(program, '{{pkg}}', TestUnit, TestBench)
-
+BuildGRPC(program, '{{uuid}}')
 program.parse(process.argv)

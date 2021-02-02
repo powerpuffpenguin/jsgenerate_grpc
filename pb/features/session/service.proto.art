@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package {{grpcPrefix}}.features.session;
+option go_package = "{{pkg}}/protocol/session";
+
+{{if gateway}}
+import "google/api/annotations.proto";
+{{/if}}
+
+// Session Service
+service Service {
+    // get tourist token
+    rpc Tourist (TouristRequest) returns (TouristResponse){{if gateway}}{
+        option (google.api.http) = {
+            get: "/api/v1/session/tourist"
+        };
+    }{{else}};{{/if}}
+}
+message TouristRequest{
+}
+message TouristResponse{
+    // Access jwt token
+    string Access = 1;
+    // Refresh jwt token
+    string Refresh = 2;
+}

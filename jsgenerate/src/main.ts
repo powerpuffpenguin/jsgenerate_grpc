@@ -31,6 +31,7 @@ class Metadata {
     constructor(pkg: string,
         name: string,
         tag: Array<string>,
+        public readonly uuid: string,
     ) {
         pkg = pkg.replace('.', '/').replace('@', '').replace('-', '_')
         pkg = pkg.replace('//', '/').replace('__', '_')
@@ -63,7 +64,8 @@ class Metadata {
     }
 }
 export function jsgenerate(context: Context) {
-    const md = new Metadata(context.pkg, context.name, context.tag)
+    const uuid = context.uuidv1()
+    const md = new Metadata(context.pkg, context.name, context.tag, uuid)
     const prefix = ['.git' + sep]
     const exclude = ['.git']
     if (!md.db) {
@@ -79,7 +81,7 @@ export function jsgenerate(context: Context) {
         exclude.push('static')
         exclude.push(join('cmd', 'internal', 'daemon', 'gin.go'))
     }
-    const nameService = new NameService(context.output,
+    const nameService = new NameService(context.output, uuid,
         new Exclude(
             prefix,
             [],

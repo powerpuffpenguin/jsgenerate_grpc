@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package {{grpcPrefix}}.features.user;
+option go_package = "{{pkg}}/protocol/user";
+
+{{if gateway}}
+import "google/api/annotations.proto";
+{{/if}}
+
+service Service {
+    // List return all user info
+    rpc List (ListRequest) returns (ListResponse){{if gateway}}{
+        option (google.api.http) = {
+            get: "/api/v1/features/users"
+        };
+    }{{else}};{{/if}}
+}
+
+message Data {
+    int64 id = 1;
+    // [a-zA-Z][a-zA-Z0-9]{4,}
+    string name = 2;   
+    string nickname = 3;
+    // * 1 Root
+    repeated int32 authorization = 4;
+}
+message ListRequest{
+}
+message ListResponse{
+    repeated Data data = 1;
+}

@@ -16,7 +16,8 @@ async function exists(filename) {
     return false;
 }
 class Metadata {
-    constructor(pkg, name, tag) {
+    constructor(pkg, name, tag, uuid) {
+        this.uuid = uuid;
         this.date = new Date();
         this.project_ = '';
         this.pkg_ = '';
@@ -65,7 +66,8 @@ class Metadata {
     }
 }
 function jsgenerate(context) {
-    const md = new Metadata(context.pkg, context.name, context.tag);
+    const uuid = context.uuidv1();
+    const md = new Metadata(context.pkg, context.name, context.tag, uuid);
     const prefix = ['.git' + path_1.sep];
     const exclude = ['.git'];
     if (!md.db) {
@@ -81,7 +83,7 @@ function jsgenerate(context) {
         exclude.push('static');
         exclude.push(path_1.join('cmd', 'internal', 'daemon', 'gin.go'));
     }
-    const nameService = new helper_1.NameService(context.output, new helper_1.Exclude(prefix, [], exclude)).rename(`${md.project}.jsonnet`, `example.jsonnet`, `bin`);
+    const nameService = new helper_1.NameService(context.output, uuid, new helper_1.Exclude(prefix, [], exclude)).rename(`${md.project}.jsonnet`, `example.jsonnet`, `bin`);
     context.serve(async function (name, src, stat) {
         if (nameService.checkExclude(name)) {
             return;

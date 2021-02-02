@@ -2,10 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const child_process = require('child_process');
 const { join, normalize } = require('path');
-exports.Target = void 0;
 exports.Build = void 0;
 exports.Append = void 0;
 exports.BuildTest = void 0;
+exports.BuildGRPC = void 0;
 function getEnv(obj) {
     const env = {}
     for (const k in process.env) {
@@ -114,7 +114,7 @@ class Target {
 function Build(program, os, arch, name, ext, ...packs) {
     const pack = '7z gz bz2 xz zip'
     program.command(os)
-        .description(`build code to os`)
+        .description(`build code to ${os}`)
         .option(`--arch [${arch.join(' ')}]`, 'GOARCH default use amd64')
         .option(`-p,--pack [${pack}]`, 'Pack to compressed package')
         .option('--debug', 'build as debug')
@@ -185,7 +185,23 @@ function BuildTest(program, pkg, unit, bench) {
         })
 }
 
-exports.Target = Target;
+class GRPC {
+    constructor(language, uuid) {
+        this.language = language
+        this.uuid = uuid
+    }
+}
+function BuildGRPC(program, uuid) {
+    program.command('grpc')
+        .description('build *.proto to grpc code')
+        .option('-l,--language [go dart]', 'grpc target language')
+        .action(function () {
+            const opts = this.opts()
+            const grpc = new GRPC(opts['language'], uuid)
+            console.log(grpc)
+        })
+}
 exports.Build = Build;
 exports.Append = Append;
 exports.BuildTest = BuildTest;
+exports.BuildGRPC = BuildGRPC;

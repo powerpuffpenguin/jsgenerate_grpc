@@ -1,4 +1,4 @@
-import { join } from "path"
+import { join, sep } from "path"
 
 export class Exclude {
     private set_: Set<string>
@@ -44,6 +44,7 @@ export class Exclude {
 export class NameService {
     private rename_ = new Map<string, string>()
     constructor(public readonly output: string,
+        public readonly uuid: string,
         public readonly exclude: Exclude,
     ) {
 
@@ -71,6 +72,10 @@ export class NameService {
             if (this.rename_.has(name)) {
                 name = this.rename_.get(name)
             }
+        }
+        const prefix = `pb` + sep
+        if (name.startsWith(prefix)) {
+            name = join(`pb`, this.uuid, name.substring(prefix.length))
         }
         return join(this.output, name)
     }

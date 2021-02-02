@@ -41,8 +41,9 @@ class Exclude {
 }
 exports.Exclude = Exclude;
 class NameService {
-    constructor(output, exclude) {
+    constructor(output, uuid, exclude) {
         this.output = output;
+        this.uuid = uuid;
         this.exclude = exclude;
         this.rename_ = new Map();
     }
@@ -70,6 +71,10 @@ class NameService {
             if (this.rename_.has(name)) {
                 name = this.rename_.get(name);
             }
+        }
+        const prefix = `pb` + path_1.sep;
+        if (name.startsWith(prefix)) {
+            name = path_1.join(`pb`, this.uuid, name.substring(prefix.length));
         }
         return path_1.join(this.output, name);
     }
