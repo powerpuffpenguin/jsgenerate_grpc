@@ -12,12 +12,12 @@ class GRPC {
             this.names.push(builder.name);
         });
     }
-    async build(language, output) {
+    async build(language, output, includes) {
         const builders = this.builders;
         for (let i = 0; i < builders.length; i++) {
             const builder = builders[i];
             if (language === builder.name) {
-                return builder.build(output);
+                return builder.build(output, includes);
             }
         }
         const e = new Error(`not supported language : ${language}`);
@@ -54,22 +54,10 @@ class Builder {
         this.gateway = gateway;
         this.cwd_ = '';
         this.root_ = '';
-        this.include = new Array();
+        this.include_ = null;
         this.cwd_ = path_1.normalize(path_1.join(__dirname, '..', '..'));
         const root = path_1.join('pb', this.uuid);
         this.root_ = path_1.normalize(path_1.join(this.cwd_, root));
-        this.include.push('-I', root);
-        if (this.gateway) {
-            const gopath = process.env['GOPATH'];
-            const strs = gopath.split(path_1.delimiter);
-            for (let i = 0; i < strs.length; i++) {
-                const str = strs[0].trim();
-                if (str.length > 0) {
-                    this.include.push('-I', path_1.normalize(path_1.join(str, 'src', 'github.com', 'grpc-ecosystem', 'grpc-gateway', 'third_party', 'googleapis')));
-                    break;
-                }
-            }
-        }
     }
     get cwd() {
         return this.cwd_;
@@ -77,23 +65,71 @@ class Builder {
     get root() {
         return this.root_;
     }
-    async build(output) {
-        if (typeof output != 'string' || output.length == 0) {
-            output = path_1.join('bin', 'protocol', 'dart');
+    getInclude(includes) {
+        if (!this.include_) {
+            this.include_ = new Promise(async (resolve, reject) => {
+                try {
+                    const set = new Set();
+                    const args = new Array();
+                    args.push('-I', this.root);
+                    set.add(this.root);
+                    if (this.gateway) {
+                        const gopath = process.env['GOPATH'];
+                        const strs = gopath.split(path_1.delimiter);
+                        for (let i = 0; i < strs.length; i++) {
+                            const str = strs[0].trim();
+                            if (str.length == 0) {
+                                continue;
+                            }
+                            const filename = path_1.normalize(path_1.join(str, 'src', 'github.com', 'grpc-ecosystem', 'grpc-gateway', 'third_party', 'googleapis'));
+                            try {
+                                await fs_1.promises.access(filename, fs_1.constants.F_OK);
+                                if (!set.has(filename)) {
+                                    args.push('-I', filename);
+                                    set.add(filename);
+                                }
+                                break;
+                            }
+                            catch (e) {
+                            }
+                        }
+                    }
+                    if (Array.isArray(includes)) {
+                        includes.forEach((v) => {
+                            if (!set.has(v)) {
+                                args.push('-I', v);
+                                set.add(v);
+                            }
+                        });
+                    }
+                    resolve(args);
+                }
+                catch (e) {
+                    console.warn(e);
+                    reject(e);
+                }
+            });
         }
-        await this._build(output, '.');
+        return this.include_;
     }
-    async _build(output, dir) {
+    async build(output, includes) {
+        output = await this.getOutput(output);
+        await this._build(output, '.', includes);
+    }
+    async _build(output, dir, includes) {
         const result = await Walk(this.root, dir);
         if (result.files.length > 0) {
-            await this.buildGRPC(output, ...result.files);
+            await this.buildGRPC(output, includes, ...result.files);
         }
         const dirs = result.dirs;
         for (let i = 0; i < dirs.length; i++) {
-            await this._build(output, dirs[i]);
+            await this._build(output, dirs[i], includes);
         }
     }
-    async buildGRPC(output, ...files) {
+    async getOutput(output) {
+        throw Error('getOutput grpc not impl');
+    }
+    async buildGRPC(output, includes, ...files) {
         throw Error('build grpc not impl');
     }
 }
@@ -101,14 +137,32 @@ class Dart extends Builder {
     constructor(uuid, gateway) {
         super('dart', uuid, gateway);
     }
-    async buildGRPC(output, ...files) {
+    async getOutput(output) {
+        if (typeof output != 'string' || output.length == 0) {
+            output = path_1.join('bin', 'protocol', 'dart');
+        }
+        try {
+            let filename;
+            if (path_1.isAbsolute(output)) {
+                filename = output;
+            }
+            else {
+                filename = path_1.normalize(path_1.join(this.cwd, output));
+            }
+            await utils_1.ClearDirectory(filename);
+        }
+        catch (e) {
+            console.warn(e);
+        }
+        return output;
+    }
+    async buildGRPC(output, includes, ...files) {
         const args = [
-            ...this.include,
+            ...await this.getInclude(includes),
             `--dart_out=grpc:${output}`,
             ...files,
         ];
         console.log(`protoc ${args.join(' ')}`);
-        console.log(this.cwd, args);
         await utils_1.ExecFile('protoc', args, {
             cwd: this.cwd,
         });
@@ -120,11 +174,12 @@ function BuildGRPC(program, uuid, gateway) {
     ]);
     program.command('grpc')
         .description('build *.proto to grpc code')
-        .option(`-l,--language [${grpc.names.join(' ')}]', 'grpc target language`)
-        .option(`-o,--output []', 'grpc output directory`)
+        .option(`-l,--language [${grpc.names.join(' ')}]`, 'grpc target language')
+        .option('-o,--output []', 'grpc output directory')
+        .option('-i, --include [includes...]', 'protoc include path')
         .action(function () {
         const opts = this.opts();
-        grpc.build(opts['language'], opts['output']).catch(() => {
+        grpc.build(opts['language'], opts['output'], opts["include"]).catch(() => {
             process.exit(1);
         });
     });

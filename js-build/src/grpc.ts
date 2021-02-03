@@ -1,7 +1,7 @@
-import { promises } from 'fs';
-import { join, normalize, delimiter } from 'path';
+import { promises, constants } from 'fs';
+import { join, normalize, delimiter, isAbsolute } from 'path';
 import { Command } from '../commander';
-import { ExecFile } from './utils';
+import { ExecFile, ClearDirectory } from './utils';
 
 class GRPC {
     names = new Array<string>()
@@ -10,12 +10,12 @@ class GRPC {
             this.names.push(builder.name)
         })
     }
-    async build(language: string, output: string): Promise<void> {
+    async build(language: string, output: string, includes: Array<string>): Promise<void> {
         const builders = this.builders
         for (let i = 0; i < builders.length; i++) {
             const builder = builders[i]
             if (language === builder.name) {
-                return builder.build(output)
+                return builder.build(output, includes)
             }
         }
         const e = new Error(`not supported language : ${language}`)
@@ -51,7 +51,53 @@ class Builder {
     get root(): string {
         return this.root_
     }
-    readonly include = new Array<string>()
+    private include_: Promise<Array<string>> = null
+    getInclude(includes: Array<string>): Promise<Array<string>> {
+        if (!this.include_) {
+            this.include_ = new Promise<Array<string>>(async (resolve, reject) => {
+                try {
+                    const set = new Set<string>()
+                    const args = new Array<string>()
+                    args.push('-I', this.root)
+                    set.add(this.root)
+
+                    if (this.gateway) {
+                        const gopath = process.env['GOPATH']
+                        const strs = gopath.split(delimiter)
+                        for (let i = 0; i < strs.length; i++) {
+                            const str = strs[0].trim()
+                            if (str.length == 0) {
+                                continue
+                            }
+                            const filename = normalize(join(str, 'src', 'github.com', 'grpc-ecosystem', 'grpc-gateway', 'third_party', 'googleapis'))
+                            try {
+                                await promises.access(filename, constants.F_OK)
+                                if (!set.has(filename)) {
+                                    args.push('-I', filename)
+                                    set.add(filename)
+                                }
+                                break
+                            } catch (e) {
+                            }
+                        }
+                    }
+                    if (Array.isArray(includes)) {
+                        includes.forEach((v) => {
+                            if (!set.has(v)) {
+                                args.push('-I', v)
+                                set.add(v)
+                            }
+                        })
+                    }
+                    resolve(args)
+                } catch (e) {
+                    console.warn(e)
+                    reject(e)
+                }
+            })
+        }
+        return this.include_
+    }
     constructor(public readonly name: string,
         public readonly uuid: string,
         public readonly gateway: boolean,
@@ -59,36 +105,25 @@ class Builder {
         this.cwd_ = normalize(join(__dirname, '..', '..'))
         const root = join('pb', this.uuid)
         this.root_ = normalize(join(this.cwd_, root))
-        this.include.push('-I', root)
-        if (this.gateway) {
-            const gopath = process.env['GOPATH']
-            const strs = gopath.split(delimiter)
-            for (let i = 0; i < strs.length; i++) {
-                const str = strs[0].trim()
-                if (str.length > 0) {
-                    this.include.push('-I', normalize(join(str, 'src', 'github.com', 'grpc-ecosystem', 'grpc-gateway', 'third_party', 'googleapis')))
-                    break
-                }
-            }
-        }
     }
-    async build(output: string): Promise<void> {
-        if (typeof output != 'string' || output.length == 0) {
-            output = join('bin', 'protocol', 'dart')
-        }
-        await this._build(output, '.')
+    async build(output: string, includes: Array<string>): Promise<void> {
+        output = await this.getOutput(output)
+        await this._build(output, '.', includes)
     }
-    async _build(output: string, dir: string): Promise<void> {
+    async _build(output: string, dir: string, includes: Array<string>): Promise<void> {
         const result = await Walk(this.root, dir)
         if (result.files.length > 0) {
-            await this.buildGRPC(output, ...result.files)
+            await this.buildGRPC(output, includes, ...result.files)
         }
         const dirs = result.dirs
         for (let i = 0; i < dirs.length; i++) {
-            await this._build(output, dirs[i])
+            await this._build(output, dirs[i], includes)
         }
     }
-    async buildGRPC(output: string, ...files: Array<string>) {
+    async getOutput(output: string): Promise<string> {
+        throw Error('getOutput grpc not impl')
+    }
+    async buildGRPC(output: string, includes: Array<string>, ...files: Array<string>) {
         throw Error('build grpc not impl')
     }
 }
@@ -96,9 +131,26 @@ class Dart extends Builder {
     constructor(uuid: string, gateway: boolean) {
         super('dart', uuid, gateway)
     }
-    async buildGRPC(output: string, ...files: Array<string>) {
+    async getOutput(output: string): Promise<string> {
+        if (typeof output != 'string' || output.length == 0) {
+            output = join('bin', 'protocol', 'dart')
+        }
+        try {
+            let filename: string
+            if (isAbsolute(output)) {
+                filename = output
+            } else {
+                filename = normalize(join(this.cwd, output))
+            }
+            await ClearDirectory(filename)
+        } catch (e) {
+            console.warn(e)
+        }
+        return output
+    }
+    async buildGRPC(output: string, includes: Array<string>, ...files: Array<string>) {
         const args = [
-            ...this.include,
+            ...await this.getInclude(includes),
             `--dart_out=grpc:${output}`,
             ...files,
         ]
@@ -114,11 +166,12 @@ export function BuildGRPC(program: Command, uuid: string, gateway: boolean) {
     ])
     program.command('grpc')
         .description('build *.proto to grpc code')
-        .option(`-l,--language [${grpc.names.join(' ')}]', 'grpc target language`)
-        .option(`-o,--output []', 'grpc output directory`)
+        .option(`-l,--language [${grpc.names.join(' ')}]`, 'grpc target language')
+        .option('-o,--output []', 'grpc output directory')
+        .option('-i, --include [includes...]', 'protoc include path')
         .action(function () {
             const opts = this.opts()
-            grpc.build(opts['language'], opts['output']).catch(() => {
+            grpc.build(opts['language'], opts['output'], opts["include"]).catch(() => {
                 process.exit(1)
             })
         })

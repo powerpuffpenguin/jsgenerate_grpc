@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Append = exports.ExecFile = exports.Env = exports.Merge = void 0;
+exports.RmDirectory = exports.ClearDirectory = exports.Append = exports.ExecFile = exports.Env = exports.Merge = void 0;
 const child_process_1 = require("child_process");
+const fs_1 = require("fs");
+const path_1 = require("path");
 function Merge(...objs) {
     const result = {};
     for (let i = 0; i < objs.length; i++) {
@@ -41,3 +43,40 @@ function Append(items, ...elems) {
     return obj;
 }
 exports.Append = Append;
+async function ClearDirectory(filename) {
+    let dirs;
+    try {
+        dirs = await fs_1.promises.opendir(filename);
+    }
+    catch (e) {
+        if (e.code === `ENOENT`) {
+            await fs_1.promises.mkdir(filename, {
+                recursive: true,
+                mode: 0o775,
+            });
+            return;
+        }
+    }
+    for await (const dirent of dirs) {
+        if (dirent.isDirectory()) {
+            await RmDirectory(path_1.join(filename, dirent.name));
+        }
+        else {
+            await fs_1.promises.rm(path_1.join(filename, dirent.name));
+        }
+    }
+}
+exports.ClearDirectory = ClearDirectory;
+async function RmDirectory(filename) {
+    const dirs = await fs_1.promises.opendir(filename);
+    for await (const dirent of dirs) {
+        if (dirent.isDirectory()) {
+            await RmDirectory(path_1.join(filename, dirent.name));
+        }
+        else {
+            await fs_1.promises.rm(path_1.join(filename, dirent.name));
+        }
+    }
+    await fs_1.promises.rmdir(filename);
+}
+exports.RmDirectory = RmDirectory;
