@@ -68,7 +68,19 @@ async function ClearDirectory(filename) {
 }
 exports.ClearDirectory = ClearDirectory;
 async function RmDirectory(filename) {
-    const dirs = await fs_1.promises.opendir(filename);
+    let dirs;
+    try {
+        dirs = await fs_1.promises.opendir(filename);
+    }
+    catch (e) {
+        if (e.code === `ENOENT`) {
+            await fs_1.promises.mkdir(filename, {
+                recursive: true,
+                mode: 0o775,
+            });
+            return;
+        }
+    }
     for await (const dirent of dirs) {
         if (dirent.isDirectory()) {
             await RmDirectory(path_1.join(filename, dirent.name));

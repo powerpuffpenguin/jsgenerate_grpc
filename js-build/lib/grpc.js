@@ -54,6 +54,7 @@ class Builder {
         this.gateway = gateway;
         this.cwd_ = '';
         this.root_ = '';
+        this.first_ = true;
         this.include_ = null;
         this.cwd_ = path_1.normalize(path_1.join(__dirname, '..', '..'));
         const root = path_1.join('pb', this.uuid);
@@ -114,11 +115,20 @@ class Builder {
     }
     async build(output, includes) {
         output = await this.getOutput(output);
+        this.first_ = true;
         await this._build(output, '.', includes);
+        await this.done();
     }
     async _build(output, dir, includes) {
         const result = await Walk(this.root, dir);
         if (result.files.length > 0) {
+            if (this.first_) {
+                this.first_ = false;
+            }
+            else {
+                console.log();
+            }
+            console.log(`------ build : ${dir} ------`);
             await this.buildGRPC(output, includes, ...result.files);
         }
         const dirs = result.dirs;
@@ -131,6 +141,8 @@ class Builder {
     }
     async buildGRPC(output, includes, ...files) {
         throw Error('build grpc not impl');
+    }
+    async done() {
     }
 }
 class Dart extends Builder {
@@ -168,8 +180,71 @@ class Dart extends Builder {
         });
     }
 }
-function BuildGRPC(program, uuid, gateway) {
+class Go extends Builder {
+    constructor(pkg, uuid, gateway, gin) {
+        super('go', uuid, gateway);
+        this.pkg = pkg;
+        this.gin = gin;
+    }
+    async getOutput(output) {
+        output = path_1.join(this.cwd, '.tmp');
+        try {
+            await utils_1.ClearDirectory(output);
+            if (this.gin) {
+                await utils_1.RmDirectory(path_1.join(this.cwd, 'static', 'document', 'api'));
+                await utils_1.ClearDirectory(path_1.join(output, 'api'));
+            }
+            await utils_1.RmDirectory(path_1.join(this.cwd, 'protocol'));
+        }
+        catch (e) {
+            console.warn(e);
+        }
+        return output;
+    }
+    async buildGRPC(output, includes, ...files) {
+        let args = [
+            ...await this.getInclude(includes),
+            `--go_out=plugins=grpc:${output}`,
+            ...files,
+        ];
+        console.log(`protoc ${args.join(' ')}`);
+        await utils_1.ExecFile('protoc', args, {
+            cwd: this.cwd,
+        });
+        if (this.gateway) {
+            args = [
+                ...await this.getInclude(includes),
+                `--grpc-gateway_out=logtostderr=true:${output}`,
+                ...files,
+            ];
+            console.log(`protoc ${args.join(' ')}`);
+            await utils_1.ExecFile('protoc', args, {
+                cwd: this.cwd,
+            });
+        }
+        if (this.gin) {
+            args = [
+                ...await this.getInclude(includes),
+                `--openapiv2_out=logtostderr=true:${path_1.join(output, 'api')}`,
+                ...files,
+            ];
+            console.log(`protoc ${args.join(' ')}`);
+            await utils_1.ExecFile('protoc', args, {
+                cwd: this.cwd,
+            });
+        }
+    }
+    async done() {
+        await fs_1.promises.rename(path_1.normalize(path_1.join(this.cwd, '.tmp', this.pkg, 'protocol')), path_1.join(this.cwd, 'protocol'));
+        if (this.gin) {
+            await fs_1.promises.rename(path_1.normalize(path_1.join(this.cwd, '.tmp', 'api')), path_1.join(this.cwd, 'static', 'document', 'api'));
+        }
+        await utils_1.RmDirectory(path_1.join(this.cwd, '.tmp'));
+    }
+}
+function BuildGRPC(program, pkg, uuid, gateway, gin) {
     const grpc = new GRPC([
+        new Go(pkg, uuid, gateway, gin),
         new Dart(uuid, gateway),
     ]);
     program.command('grpc')

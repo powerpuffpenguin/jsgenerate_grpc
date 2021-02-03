@@ -34,4 +34,4 @@
 # grpc code
 /protocol/
 /bin/protocol/
-/static_document/api/
+/static/document/api/

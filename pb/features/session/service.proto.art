@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package {{grpcPrefix}}.features.session;
-option go_package = "{{pkg}}/protocol/session";
+option go_package = "{{pkg}}/protocol/features/session";
 
 {{if gateway}}
 import "google/api/annotations.proto";

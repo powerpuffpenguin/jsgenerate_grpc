@@ -1,7 +1,7 @@
 import { promises, constants } from 'fs';
 import { join, normalize, delimiter, isAbsolute } from 'path';
 import { Command } from '../commander';
-import { ExecFile, ClearDirectory } from './utils';
+import { ExecFile, ClearDirectory, RmDirectory } from './utils';
 
 class GRPC {
     names = new Array<string>()
@@ -51,6 +51,7 @@ class Builder {
     get root(): string {
         return this.root_
     }
+    private first_ = true
     private include_: Promise<Array<string>> = null
     getInclude(includes: Array<string>): Promise<Array<string>> {
         if (!this.include_) {
@@ -108,11 +109,19 @@ class Builder {
     }
     async build(output: string, includes: Array<string>): Promise<void> {
         output = await this.getOutput(output)
+        this.first_ = true
         await this._build(output, '.', includes)
+        await this.done()
     }
     async _build(output: string, dir: string, includes: Array<string>): Promise<void> {
         const result = await Walk(this.root, dir)
         if (result.files.length > 0) {
+            if (this.first_) {
+                this.first_ = false
+            } else {
+                console.log()
+            }
+            console.log(`------ build : ${dir} ------`)
             await this.buildGRPC(output, includes, ...result.files)
         }
         const dirs = result.dirs
@@ -125,6 +134,9 @@ class Builder {
     }
     async buildGRPC(output: string, includes: Array<string>, ...files: Array<string>) {
         throw Error('build grpc not impl')
+    }
+    async done() {
+
     }
 }
 class Dart extends Builder {
@@ -160,8 +172,72 @@ class Dart extends Builder {
         })
     }
 }
-export function BuildGRPC(program: Command, uuid: string, gateway: boolean) {
+class Go extends Builder {
+    constructor(public readonly pkg: string,
+        uuid: string, gateway: boolean,
+        public readonly gin: boolean,
+    ) {
+        super('go', uuid, gateway)
+    }
+    async getOutput(output: string): Promise<string> {
+        output = join(this.cwd, '.tmp')
+        try {
+            await ClearDirectory(output)
+            if (this.gin) {
+                await RmDirectory(join(this.cwd, 'static', 'document', 'api'))
+                await ClearDirectory(join(output, 'api'))
+            }
+            await RmDirectory(join(this.cwd, 'protocol'))
+        } catch (e) {
+            console.warn(e)
+        }
+        return output
+    }
+    async buildGRPC(output: string, includes: Array<string>, ...files: Array<string>) {
+        let args = [
+            ...await this.getInclude(includes),
+            `--go_out=plugins=grpc:${output}`,
+            ...files,
+        ]
+        console.log(`protoc ${args.join(' ')}`)
+        await ExecFile('protoc', args, {
+            cwd: this.cwd,
+        })
+        if (this.gateway) {
+            args = [
+                ...await this.getInclude(includes),
+                `--grpc-gateway_out=logtostderr=true:${output}`,
+                ...files,
+            ]
+            console.log(`protoc ${args.join(' ')}`)
+            await ExecFile('protoc', args, {
+                cwd: this.cwd,
+            })
+        }
+
+        if (this.gin) {
+            args = [
+                ...await this.getInclude(includes),
+                `--openapiv2_out=logtostderr=true:${join(output, 'api')}`,
+                ...files,
+            ]
+            console.log(`protoc ${args.join(' ')}`)
+            await ExecFile('protoc', args, {
+                cwd: this.cwd,
+            })
+        }
+    }
+    async done() {
+        await promises.rename(normalize(join(this.cwd, '.tmp', this.pkg, 'protocol')), join(this.cwd, 'protocol'))
+        if (this.gin) {
+            await promises.rename(normalize(join(this.cwd, '.tmp', 'api')), join(this.cwd, 'static', 'document', 'api'))
+        }
+        await RmDirectory(join(this.cwd, '.tmp'))
+    }
+}
+export function BuildGRPC(program: Command, pkg: string, uuid: string, gateway: boolean, gin: boolean) {
     const grpc = new GRPC([
+        new Go(pkg, uuid, gateway, gin),
         new Dart(uuid, gateway),
     ])
     program.command('grpc')

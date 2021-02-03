@@ -36,5 +36,5 @@ program.command('source')
     }){{/if}}
 
 BuildTest(program, '{{pkg}}', TestUnit, TestBench)
-BuildGRPC(program, '{{uuid}}', {{gateway}})
+BuildGRPC(program, '{{pkg}}', '{{uuid}}', {{gateway}}, {{gin}})
 program.parse(process.argv)
