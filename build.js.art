@@ -3,6 +3,7 @@
 const { Command } = require('./js-build/commander')
 const { Append } = require('./js-build/lib/utils')
 const { Build, BuildTest } = require('./js-build/lib/build')
+const { BuildSource } = require('./js-build/lib/source')
 const { BuildGRPC } = require('./js-build/lib/grpc')
 const Name = '{{project}}'
 const TestBench = [
@@ -28,13 +29,8 @@ Build(program, 'windows', Arch,
     `${Name}.jsonnet`,
 )
 
-{{if gin}}
-program.command('source')
-    .description('build static source to golang code')
-    .action(() => {
-        console.log('source')
-    }){{/if}}
-
 BuildTest(program, '{{pkg}}', TestUnit, TestBench)
 BuildGRPC(program, '{{pkg}}', '{{uuid}}', {{gateway}}, {{gin}})
+{{if gin}}BuildSource(program)
+{{/if}}
 program.parse(process.argv)

@@ -68,7 +68,10 @@ class Metadata {
 function jsgenerate(context) {
     const uuid = context.uuidv1();
     const md = new Metadata(context.pkg, context.name, context.tag, uuid);
-    const prefix = ['.git' + path_1.sep];
+    const prefix = [
+        '.git' + path_1.sep,
+        path_1.join('view', 'node_modules'),
+    ];
     const exclude = ['.git'];
     if (!md.db) {
         exclude.push(path_1.join('configure', 'db.go'));
@@ -81,6 +84,8 @@ function jsgenerate(context) {
         exclude.push('web');
         prefix.push('static' + path_1.sep);
         exclude.push('static');
+        prefix.push('view' + path_1.sep);
+        exclude.push('view');
         exclude.push(path_1.join('cmd', 'internal', 'daemon', 'gin.go'));
     }
     const nameService = new helper_1.NameService(context.output, uuid, new helper_1.Exclude(prefix, [], exclude)).rename(`${md.project}.jsonnet`, `example.jsonnet`, `bin`);

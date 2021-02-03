@@ -10,7 +10,7 @@ local GB = 1024*MB;
 
 {
 	HTTP: {
-		Addr: ":6000",
+		Addr: ":9000",
 		// x509 if empty use h2c
 		// CertFile: "test.pem",
 		// KeyFile: "test.key",

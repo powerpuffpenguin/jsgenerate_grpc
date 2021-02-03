@@ -1,11 +1,12 @@
 package main
 
-import (
-	// _ "{{pkg}}/assets/document/statik"
-	// _ "{{pkg}}/assets/en-US/statik"
-	// _ "{{pkg}}/assets/static/statik"
-	// _ "{{pkg}}/assets/zh-Hans/statik"
-	// _ "{{pkg}}/assets/zh-Hant/statik"
+import ({{if gin}}
+	_ "{{pkg}}/assets/document/statik"
+	_ "{{pkg}}/assets/en-US/statik"
+	_ "{{pkg}}/assets/static/statik"
+	_ "{{pkg}}/assets/zh-Hans/statik"
+	_ "{{pkg}}/assets/zh-Hant/statik"
+{{/if}}
 	_ "{{pkg}}/module/features/session"
 	"{{pkg}}/cmd"
 	"log"

@@ -12,27 +12,27 @@ service Service {
     // Tourist get tourist token
     rpc Tourist (TouristRequest) returns (TouristResponse){{if gateway}}{
         option (google.api.http) = {
-            get: "/api/v1/sessions/tourist"
+            get: "/api/v1/features/sessions/tourist"
         };
     }{{else}};{{/if}}
     // Signin get user token 
     rpc Signin (SigninRequest) returns (SigninResponse){{if gateway}}{
         option (google.api.http) = {
-            post: "/api/v1/sessions"
+            post: "/api/v1/features/sessions"
             body: "*"
         };
     }{{else}};{{/if}}
     // Refresh access token by refresh token
     rpc Refresh (RefreshRequest) returns (RefreshResponse){{if gateway}}{
         option (google.api.http) = {
-            post: "/api/v1/sessions/refresh"
+            post: "/api/v1/features/sessions/refresh"
             body: "*"
         };
     }{{else}};{{/if}}
     // Password change session password
     rpc Password (PasswordRequest) returns (PasswordResponse){{if gateway}}{
         option (google.api.http) = {
-            patch: "/api/v1/sessions/password"
+            patch: "/api/v1/features/sessions/password"
             body: "*"
         };
     }{{else}};{{/if}}
