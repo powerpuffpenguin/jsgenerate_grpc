@@ -9,10 +9,31 @@ import "google/api/annotations.proto";
 
 // Session Service
 service Service {
-    // get tourist token
+    // Tourist get tourist token
     rpc Tourist (TouristRequest) returns (TouristResponse){{if gateway}}{
         option (google.api.http) = {
-            get: "/api/v1/session/tourist"
+            get: "/api/v1/sessions/tourist"
+        };
+    }{{else}};{{/if}}
+    // Signin get user token 
+    rpc Signin (SigninRequest) returns (SigninResponse){{if gateway}}{
+        option (google.api.http) = {
+            post: "/api/v1/sessions"
+            body: "*"
+        };
+    }{{else}};{{/if}}
+    // Refresh access token by refresh token
+    rpc Refresh (RefreshRequest) returns (RefreshResponse){{if gateway}}{
+        option (google.api.http) = {
+            post: "/api/v1/sessions/refresh"
+            body: "*"
+        };
+    }{{else}};{{/if}}
+    // Password change session password
+    rpc Password (PasswordRequest) returns (PasswordResponse){{if gateway}}{
+        option (google.api.http) = {
+            patch: "/api/v1/sessions/password"
+            body: "*"
         };
     }{{else}};{{/if}}
 }
@@ -23,4 +44,29 @@ message TouristResponse{
     string Access = 1;
     // Refresh jwt token
     string Refresh = 2;
+}
+message SigninRequest{
+    string name = 1;
+    string password = 2;
+}
+message SigninResponse{
+    // Access jwt token
+    string Access = 1;
+    // Refresh jwt token
+    string Refresh = 2;
+}
+message RefreshRequest{
+}
+message RefreshResponse{
+    // Access jwt token
+    string Access = 1;
+}
+message PasswordRequest{
+    // old password
+    string old = 1;
+    // new password
+    string value = 2;
+}
+message PasswordResponse{
+    bool changed = 1;
 }

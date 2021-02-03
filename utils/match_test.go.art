@@ -1,0 +1,15 @@
+package utils_test
+
+import (
+	"{{pkg}}/utils"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func TestName(t *testing.T) {
+	assert.True(t, utils.MatchName(`a123`))
+	assert.False(t, utils.MatchName(`3123`))
+	assert.True(t, utils.MatchName(`A123A`))
+	assert.False(t, utils.MatchName(`A12`))
+}

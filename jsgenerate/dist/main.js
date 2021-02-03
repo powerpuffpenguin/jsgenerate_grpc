@@ -105,6 +105,11 @@ function jsgenerate(context) {
         }
         const filename = nameService.getOutput(name);
         await context.mkdir(filename, true, stat.mode);
+    }).then(() => {
+        console.log(`jsgenerate success`);
+        console.log(`package : ${md.pkg}`);
+        console.log(`project : ${md.project}`);
+        console.log(`uuid : ${uuid}`);
     });
 }
 exports.jsgenerate = jsgenerate;

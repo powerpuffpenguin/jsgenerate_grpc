@@ -1,0 +1,146 @@
+package session
+
+import (
+	"context"
+
+	"{{pkg}}/db/jwt"
+	"{{pkg}}/db/signals"
+
+	grpc_session "{{pkg}}/protocol/features/session"
+	"{{pkg}}/utils"
+
+	"{{pkg}}/logger"
+	"{{pkg}}/module"
+
+	"go.uber.org/zap"
+	"google.golang.org/grpc/codes"
+)
+
+type _Impl struct {
+	module.Service
+}
+
+func (s _Impl) Tourist(ctx context.Context, request *grpc_session.TouristRequest) (response *grpc_session.TouristResponse, e error) {
+	// TAG := `session Tourist`
+
+	var session jwt.Session
+	session.Salt = utils.NewSalt()
+	session.Tourist = true
+
+	access, e := session.AccessToken()
+	if e != nil {
+		return
+	}
+	refresh, e := session.RefreshToken()
+	if e != nil {
+		return
+	}
+	response = &grpc_session.TouristResponse{
+		Access:  access,
+		Refresh: refresh,
+	}
+	return
+}
+
+func (s _Impl) Signin(ctx context.Context, request *grpc_session.SigninRequest) (response *grpc_session.SigninResponse, e error) {
+	TAG := `session Signin`
+	session, e := s.Session(ctx)
+	if e != nil {
+		return
+	}
+
+	if !utils.MatchName(request.Name) {
+		e = s.Error(codes.InvalidArgument, `name not supported`)
+		return
+	}
+	if request.Password == `` {
+		e = s.Error(codes.InvalidArgument, `password not supported empty`)
+		return
+	}
+
+	session, e = signals.Default().Session.EmitPost(ctx, request.Name, request.Password, session.Salt)
+	if e != nil {
+		if ce := logger.Logger.Check(zap.WarnLevel, TAG); ce != nil {
+			ce.Write(
+				zap.Error(e),
+			)
+		}
+		return
+	} else if session == nil {
+		e = s.Error(codes.NotFound, `name or password not match`)
+		return
+	}
+
+	access, e := session.AccessToken()
+	if e != nil {
+		return
+	}
+	refresh, e := session.RefreshToken()
+	if e != nil {
+		return
+	}
+	response = &grpc_session.SigninResponse{
+		Access:  access,
+		Refresh: refresh,
+	}
+
+	if ce := logger.Logger.Check(zap.InfoLevel, TAG); ce != nil {
+		ce.Write(
+			zap.String(`session`, session.Who()),
+		)
+	}
+	return
+}
+func (s _Impl) Refresh(ctx context.Context, request *grpc_session.RefreshRequest) (response *grpc_session.RefreshResponse, e error) {
+	// TAG := `session Refresh`
+	session, e := s.Session(ctx)
+	if e != nil {
+		return
+	}
+	access, e := session.AccessToken()
+	if e != nil {
+		return
+	}
+	response = &grpc_session.RefreshResponse{
+		Access: access,
+	}
+	return
+}
+
+var emptyPasswordResponse grpc_session.PasswordResponse
+
+func (s _Impl) Password(ctx context.Context, request *grpc_session.PasswordRequest) (response *grpc_session.PasswordResponse, e error) {
+	TAG := `session Password`
+	if request.Old == `` {
+		e = s.Error(codes.InvalidArgument, `old password not supported empty`)
+		return
+	} else if request.Value == `` {
+		e = s.Error(codes.InvalidArgument, `new password not supported empty`)
+		return
+	} else if request.Old == request.Value {
+		e = s.Error(codes.InvalidArgument, `password not changed`)
+		return
+	}
+	session, e := s.Session(ctx)
+	if e != nil {
+		return
+	}
+
+	changed, e := signals.Default().Session.EmitPassword(ctx, session.ID, request.Old, request.Value, session.Salt)
+	if e != nil {
+		return
+	} else if !changed {
+		e = s.Error(codes.NotFound, `old password not match`)
+		return
+	}
+
+	response = &emptyPasswordResponse
+	if ce := logger.Logger.Check(zap.InfoLevel, TAG); ce != nil {
+		ce.Write(
+			zap.String(`session`, session.Who()),
+			zap.String(`old`, request.Old),
+			zap.String(`value`, request.Value),
+		)
+	}
+	return
+}

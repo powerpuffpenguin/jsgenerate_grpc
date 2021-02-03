@@ -36,12 +36,14 @@ local GB = 1024*MB;
 		// enable module
 		Enable: [
 			"features.session",
+			"features.user",
 			"features.system",
 		],
 		// module configure
 		Data: {	{{if !db}}
-			"features.session": [
+			"features.user": [
 				{
+					"id": 1,
 					"name": "king",
 					"password": "12345678",
 					"authorization": [1],
@@ -87,7 +89,7 @@ local GB = 1024*MB;
 		// if true output code line
 		Caller:true,
 		// file log level [debug info warn error dpanic panic fatal]
-		FileLevel: "debug",
+		FileLevel: "info",
 		// console file level [debug info warn error dpanic panic fatal]
 		ConsoleLevel: "debug",
 	},

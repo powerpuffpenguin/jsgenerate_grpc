@@ -6,6 +6,7 @@ import (
 	// _ "{{pkg}}/assets/static/statik"
 	// _ "{{pkg}}/assets/zh-Hans/statik"
 	// _ "{{pkg}}/assets/zh-Hant/statik"
+	_ "{{pkg}}/module/features/session"
 	"{{pkg}}/cmd"
 	"log"
 {{if db}}

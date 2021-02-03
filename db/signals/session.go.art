@@ -1,0 +1,129 @@
+package signals
+
+import (
+	"context"
+	"{{pkg}}/db/jwt"
+	"sync"
+
+	"gitlab.com/king011_go/signals"
+	"gitlab.com/king011_go/signals/metadata"
+)
+
+const (
+	// SessionPost session sign in
+	SessionPost = iota + 1
+	// SessionPassword session change password
+	SessionPassword
+)
+
+// Session .
+type Session struct {
+	noCopy noCopy
+	signals.Signals
+	locker sync.Mutex
+	pool   pool
+}
+
+// EmitPost sign in
+func (s *Session) EmitPost(ctx context.Context, name, password, salt string) (session *jwt.Session, e error) {
+	s.locker.Lock()
+	if s.Signals.Len() == 0 {
+		e = ErrSlotNotExists
+	} else {
+		md := s.pool.Get()
+		md.Set(`name`, name)
+		md.Set(`password`, password)
+		md.Set(`salt`, password)
+		e = s.Signals.Emit(metadata.NewContext(ctx, md), SessionPost)
+		if e == nil {
+			if result, ok := md.Get(`result`); ok {
+				if val, ok := result.(*jwt.Session); ok {
+					session = val
+				}
+			}
+		}
+		s.pool.Put(md)
+	}
+	s.locker.Unlock()
+	return
+}
+
+// ConnectPost sign in
+func (s *Session) ConnectPost(f func(ctx context.Context, name, password, salt string) (session *jwt.Session, e error)) *signals.Connection {
+	s.locker.Lock()
+	slot := slotSessionPost{
+		f: f,
+	}
+	connection := s.Signals.Connect(slot, SessionPost)
+	s.locker.Unlock()
+	return connection
+}
+
+type slotSessionPost struct {
+	f func(ctx context.Context, name, password, salt string) (session *jwt.Session, e error)
+}
+
+func (s slotSessionPost) OnSignal(ctx context.Context) error {
+	md, _ := metadata.FromContext(ctx)
+	name := md.Assert(`name`).(string)
+	password := md.Assert(`password`).(string)
+	salt := md.Assert(`salt`).(string)
+	session, e := s.f(ctx, name, password, salt)
+	if e == nil && session != nil {
+		md.Set(`result`, session)
+	}
+	return e
+}
+
+// EmitPassword change password
+func (s *Session) EmitPassword(ctx context.Context, id int64, old, password, salt string) (changed bool, e error) {
+	s.locker.Lock()
+	if s.Signals.Len() == 0 {
+		e = ErrSlotNotExists
+	} else {
+		md := s.pool.Get()
+		md.Set(`id`, id)
+		md.Set(`old`, old)
+		md.Set(`password`, password)
+		md.Set(`salt`, salt)
+		e = s.Signals.Emit(metadata.NewContext(ctx, md), SessionPassword)
+		if e == nil {
+			if result, ok := md.Get(`result`); ok {
+				if val, ok := result.(bool); ok {
+					changed = val
+				}
+			}
+		}
+		s.pool.Put(md)
+	}
+	s.locker.Unlock()
+	return
+}
+
+// ConnectPassword change password
+func (s *Session) ConnectPassword(f func(ctx context.Context, id int64, old, password, salt string) (changed bool, e error)) *signals.Connection {
+	s.locker.Lock()
+	slot := slotSessionPasword{
+		f: f,
+	}
+	connection := s.Signals.Connect(slot, SessionPassword)
+	s.locker.Unlock()
+	return connection
+}
+
+type slotSessionPasword struct {
+	f func(ctx context.Context, id int64, old, password, salt string) (changed bool, e error)
+}
+
+func (s slotSessionPasword) OnSignal(ctx context.Context) error {
+	md, _ := metadata.FromContext(ctx)
+	id := md.Assert(`id`).(int64)
+	old := md.Assert(`old`).(string)
+	password := md.Assert(`password`).(string)
+	salt := md.Assert(`salt`).(string)
+	changed, e := s.f(ctx, id, old, password, salt)
+	if e == nil && changed {
+		md.Set(`result`, changed)
+	}
+	return e
+}

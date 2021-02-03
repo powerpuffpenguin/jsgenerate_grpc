@@ -24,8 +24,8 @@ func init() {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "daemon",
-		Short: "run as daemon",
+		Use:   `daemon`,
+		Short: `run as daemon`,
 		Run: func(cmd *cobra.Command, args []string) {
 			// load configure
 			cnf := configure.DefaultConfigure()
@@ -33,7 +33,7 @@ func init() {
 			if e != nil {
 				log.Fatalln(e)
 			}
-			if addr != "" {
+			if addr != `` {
 				cnf.HTTP.Addr = addr
 			}{{if gin}}
 			if document {
@@ -70,25 +70,25 @@ func init() {
 		},
 	}
 	flags := cmd.Flags()
-	flags.StringVarP(&filename, "config",
-		"c",
-		utils.Abs(basePath, "kc-epidemic.jsonnet"),
-		"configure file",
+	flags.StringVarP(&filename, `config`,
+		`c`,
+		utils.Abs(basePath, `{{project}}.jsonnet`),
+		`configure file`,
 	)
-	flags.StringVarP(&addr, "addr",
-		"a",
-		"",
-		"listen address",
+	flags.StringVarP(&addr, `addr`,
+		`a`,
+		``,
+		`listen address`,
 	){{if gin}}
-	flags.BoolVar(&document, "doc",
+	flags.BoolVar(&document, `doc`,
 		false,
-		"enable api document on uri '/document'",
+		`enable api document on uri '/document'`,
 	){{/if}}
 
-	flags.BoolVarP(&debug, "debug",
-		"d",
+	flags.BoolVarP(&debug, `debug`,
+		`d`,
 		false,
-		"run as debug",
+		`run as debug`,
 	)
 	rootCmd.AddCommand(cmd)
 }

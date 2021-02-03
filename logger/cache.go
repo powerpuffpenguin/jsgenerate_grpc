@@ -2,6 +2,7 @@ package logger
 
 import (
 	"runtime"
+	"sync"
 
 	"go.uber.org/zap/zapcore"
 )
@@ -11,6 +12,9 @@ type loggerCache struct {
 	buffer []byte
 	size   int
 	writer zapcore.WriteSyncer
+	sync   chan chan bool
+	signal chan bool
+	sync.Mutex
 }
 
 func newLoggerCache(writer zapcore.WriteSyncer, bufferSize int) *loggerCache {
@@ -18,26 +22,36 @@ func newLoggerCache(writer zapcore.WriteSyncer, bufferSize int) *loggerCache {
 		ch:     make(chan []byte, runtime.GOMAXPROCS(0)),
 		buffer: make([]byte, bufferSize),
 		writer: writer,
+		sync:   make(chan chan bool, 1),
+		signal: make(chan bool, 1),
 	}
 	go l.run()
 	return l
 }
 func (l *loggerCache) Sync() error {
-	return l.writer.Sync()
+	l.Lock()
+	l.sync <- l.signal
+	<-l.signal
+	e := l.writer.Sync()
+	l.Unlock()
+	return e
 }
 func (l *loggerCache) Write(b []byte) (count int, e error) {
+	l.Lock()
 	count = len(b)
 	if count > 0 {
 		data := make([]byte, count)
 		copy(data, b)
 		l.ch <- data
 	}
+	l.Unlock()
 	return
 }
 func (l *loggerCache) run() {
 	var (
 		r = reader{
-			ch: l.ch,
+			ch:   l.ch,
+			sync: l.sync,
 		}
 		n int
 	)
@@ -52,10 +66,17 @@ func (l *loggerCache) run() {
 type reader struct {
 	ch     chan []byte
 	buffer []byte
+	sync   <-chan chan bool
 }
 
 func (r *reader) Read(p []byte) (sum int, e error) {
+	var ch chan bool
 	if len(p) == 0 {
+		select {
+		case ch = <-r.sync:
+			ch <- true
+		default:
+		}
 		return
 	}
 
@@ -75,6 +96,11 @@ func (r *reader) Read(p []byte) (sum int, e error) {
 		n = r.copyBuffer(p)
 		p = p[n:]
 		sum += n
+	}
+	select {
+	case ch = <-r.sync:
+		ch <- true
+	default:
 	}
 	return
 }

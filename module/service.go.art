@@ -1,0 +1,74 @@
+package module
+
+import (
+	"context"
+	"{{pkg}}/db/jwt"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+var (
+	errSessionMiss    = status.Error(codes.PermissionDenied, `session miss`)
+	errSessionTourist = status.Error(codes.PermissionDenied, `session tourist`)
+	errSessionRefresh = status.Error(codes.PermissionDenied, `refresh token can't access`)
+	errSessionAccess = status.Error(codes.PermissionDenied, `access token can't access`)
+)
+
+// Service base service
+type Service struct {
+}
+
+// AnySession if exists any session return else return err
+func (s Service) AnySession(ctx context.Context) (session *jwt.Session, e error) {
+	session, e = jwt.FromContext(ctx)
+	if e != nil {
+		e = status.Error(codes.Unauthenticated, e.Error())
+		return
+	}
+	if session == nil {
+		e = errSessionMiss
+	}
+	return
+}
+
+// AccessSession if exists access session return else return err
+func (s Service) AccessSession(ctx context.Context) (session *jwt.Session, e error) {
+	session, e = s.AnySession(ctx)
+	if e != nil {
+		return
+	}
+	if !session.Access {
+		e = errSessionRefresh
+	}
+	return
+}
+
+// RefreshSession if exists refresh session return else return err
+func (s Service) RefreshSession(ctx context.Context) (session *jwt.Session, e error) {
+	session, e = s.AnySession(ctx)
+	if e != nil {
+		return
+	}
+	if session.Access {
+		e = errSessionAccess
+	}
+	return
+}
+
+// Session if exists user session return else return err
+func (s Service) Session(ctx context.Context) (session *jwt.Session, e error) {
+	session, e = s.AccessSession(ctx)
+	if e != nil {
+		return
+	} else if session.Tourist {
+		e = errSessionTourist
+		return
+	}
+	return
+}
+
+// Error new grpc error
+func (s Service) Error(code codes.Code, msg string) error {
+	return status.Error(code, msg)
+}

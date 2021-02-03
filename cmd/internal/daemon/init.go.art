@@ -120,17 +120,59 @@ func unaryPanic(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo
 	defer func() {
 		if err := recover(); err != nil {
 			e = status.Error(codes.Internal, fmt.Sprint(err))
+
+			if ce := logger.Logger.Check(zap.DebugLevel, `grpc unary response recover error`); ce != nil {
+				ce.Write(
+					zap.Error(e),
+					zap.String(`fullMethod`, info.FullMethod),
+				)
+			}
 		}
 	}()
 	response, e = handler(ctx, req)
+	if e == nil {
+		if ce := logger.Logger.Check(zap.DebugLevel, `grpc unary response success`); ce != nil {
+			ce.Write(
+				zap.String(`fullMethod`, info.FullMethod),
+			)
+		}
+	} else {
+		if ce := logger.Logger.Check(zap.DebugLevel, `grpc unary response error`); ce != nil {
+			ce.Write(
+				zap.Error(e),
+				zap.String(`fullMethod`, info.FullMethod),
+			)
+		}
+	}
 	return
 }
 func streamPanic(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (e error) {
 	defer func() {
 		if err := recover(); err != nil {
 			e = status.Error(codes.Internal, fmt.Sprint(err))
+
+			if ce := logger.Logger.Check(zap.DebugLevel, `grpc stream response recover error`); ce != nil {
+				ce.Write(
+					zap.Error(e),
+					zap.String(`fullMethod`, info.FullMethod),
+				)
+			}
 		}
 	}()
 	e = handler(srv, ss)
+	if e == nil {
+		if ce := logger.Logger.Check(zap.DebugLevel, `grpc stream response success`); ce != nil {
+			ce.Write(
+				zap.String(`fullMethod`, info.FullMethod),
+			)
+		}
+	} else {
+		if ce := logger.Logger.Check(zap.DebugLevel, `grpc stream response error`); ce != nil {
+			ce.Write(
+				zap.Error(e),
+				zap.String(`fullMethod`, info.FullMethod),
+			)
+		}
+	}
 	return
 }

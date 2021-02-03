@@ -7,7 +7,8 @@ require (
 	github.com/rakyll/statik v0.1.7
 	github.com/gorilla/websocket v1.4.2
 	github.com/andybalholm/brotli v1.0.1
-	github.com/gin-gonic/gin v1.6.3{{/if}}
+	github.com/gin-gonic/gin v1.6.3
+	gopkg.in/yaml.v2 v2.2.8{{/if}}
 	github.com/google/go-jsonnet v0.17.0
 	github.com/google/uuid v1.1.2{{if gateway}}
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.1.0{{/if}}{{if db}}
@@ -17,11 +18,11 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.6{{/if}}
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.6.1
+	gitlab.com/king011_go/signals v0.0.0-20210203055729-0e527a94e720
 	go.uber.org/zap v1.16.0
 	golang.org/x/net v0.0.0-20201224014010-6772e930b67b
 	google.golang.org/genproto v0.0.0-20210114201628-6edceaf6022f
 	google.golang.org/grpc v1.35.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
-	gopkg.in/yaml.v2 v2.2.8
 )

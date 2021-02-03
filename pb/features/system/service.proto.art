@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package {{grpcPrefix}}.features.system;
+option go_package = "{{pkg}}/protocol/features/system";
+
+{{if gateway}}
+import "google/api/annotations.proto";
+{{/if}}
+
+service Service {
+    // Detail return server detail data
+    rpc Detail (DetailRequest) returns (DetailResponse){{if gateway}}{
+        option (google.api.http) = {
+            get: "/api/v1/features/systems/detail"
+        };
+    }{{else}};{{/if}}
+}
+
+message Data {
+    int64 id = 1;
+    // [a-zA-Z][a-zA-Z0-9]{4,}
+    string name = 2;   
+    string nickname = 3;
+    // * 1 Root
+    repeated int32 authorization = 4;
+}
+message DetailRequest{
+}
+message DetailResponse{
+    // build platform
+    string platform = 1;
+    // build tag
+    string tag = 2;
+    // build commit
+    string commit = 3;
+    // build date
+    string date = 4;
+    // server start at unix
+    int64  startAt = 5;
+}
