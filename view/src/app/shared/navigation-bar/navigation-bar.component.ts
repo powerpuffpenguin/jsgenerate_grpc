@@ -3,6 +3,8 @@ import { filter, takeUntil } from 'rxjs/operators';
 import { SettingsService } from 'src/app/core/settings/settings.service';
 import { Closed } from 'src/app/core/utils/closed';
 import { environment } from 'src/environments/environment';
+import { MatDialog } from '@angular/material/dialog';
+import { SignInComponent } from '../sign-in/sign-in.component';
 const Themes = [
   {
     id: 'deeppurple-amber',
@@ -28,7 +30,9 @@ const Themes = [
 })
 export class NavigationBarComponent implements OnInit, OnDestroy {
 
-  constructor(private readonly settingsService: SettingsService) {
+  constructor(private readonly settingsService: SettingsService,
+    private readonly matDialog: MatDialog,
+  ) {
     this.theme = settingsService.getTheme()
     settingsService.theme.pipe(
       filter((v) => v != this.theme),
@@ -60,5 +64,8 @@ export class NavigationBarComponent implements OnInit, OnDestroy {
   }
   onClickTheme(id: string) {
     this.settingsService.nextTheme(id)
+  }
+  onClickSignin() {
+    this.matDialog.open(SignInComponent)
   }
 }
