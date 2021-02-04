@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rakyll/statik/fs"
