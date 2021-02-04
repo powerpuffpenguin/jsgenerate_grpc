@@ -1,4 +1,31 @@
-<router-outlet></router-outlet>
-<div #xi18n>
-  <div data-key="About" i18n>About Tooltip</div>
-</div>
+<ng-container [ngSwitch]="theme">
+  <ng-template [ngSwitchCase]="'deeppurple-amber'">
+    <link rel="stylesheet" href="/static/theme/color-deeppurple-amber.css">
+    <link rel="stylesheet" href="/static/theme/deeppurple-amber.css">
+  </ng-template>
+  <ng-template [ngSwitchCase]="'indigo-pink'">
+    <link rel="stylesheet" href="/static/theme/color-indigo-pink.css">
+    <link rel="stylesheet" href="/static/theme/indigo-pink.css">
+  </ng-template>
+  <ng-template [ngSwitchCase]="'pink-bluegrey'">
+    <link rel="stylesheet" href="/static/theme/color-pink-bluegrey.css">
+    <link rel="stylesheet" href="/static/theme/pink-bluegrey.css">
+  </ng-template>
+  <ng-template [ngSwitchCase]="'purple-green'">
+    <link rel="stylesheet" href="/static/theme/color-purple-green.css">
+    <link rel="stylesheet" href="/static/theme/purple-green.css">
+  </ng-template>
+</ng-container>
+
+<header>
+  <shared-navigation-bar></shared-navigation-bar>
+</header>
+<main>
+  <router-outlet></router-outlet>
+</main>
+<footer>
+  <toaster-container [toasterconfig]="config"></toaster-container>
+  <div #xi18n class="hide">
+    <div data-key="About" i18n class="context">About Tooltip</div>
+  </div>
+</footer>

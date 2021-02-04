@@ -1,0 +1,29 @@
+<mat-toolbar class="header" color="primary">
+    <a mat-icon-button i18n-matTooltip matTooltip="Home Tooltip" routerLink="/">
+        <mat-icon>home</mat-icon>
+    </a>
+
+    <a *ngIf="!production" mat-icon-button i18n-matTooltip matTooltip="Dev Tooltip" routerLink="/dev">
+        <mat-icon>code</mat-icon>
+    </a>
+    <a mat-icon-button i18n-matTooltip matTooltip="About Tooltip" routerLink="/content/about">
+        <mat-icon>info</mat-icon>
+    </a>
+
+    <span class="fill-flex"></span>
+    <a mat-icon-button matTooltip="GitLab" href="https://gitlab.com/king011_js/jsgenerate_grpc" tabindex="_blank">
+        <mat-icon class="icon-size" fontSet="fontawesome-fab" fontIcon="fa-gitlab"></mat-icon>
+    </a>
+    <button mat-icon-button matTooltip="Select a theme" [matMenuTriggerFor]="menuTheme">
+        <mat-icon>format_color_fill</mat-icon>
+    </button>
+
+</mat-toolbar>
+
+
+<mat-menu #menuTheme="matMenu">
+    <button mat-menu-item *ngFor="let item of themes; trackBy: trackByThemeId" (click)="onClickTheme(item.id)">
+        <mat-icon [color]="themeColor(item.id)">{{themeIcon(item.id)}}</mat-icon>
+        <span>{{item.name}}</span>
+    </button>
+</mat-menu>
