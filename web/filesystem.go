@@ -28,12 +28,16 @@ func (h Helper) toHTTPError(c *gin.Context, e error) {
 }
 
 // NegotiateFilesystem .
-func (h Helper) NegotiateFilesystem(c *gin.Context, fs http.FileSystem, path string) {
+func (h Helper) NegotiateFilesystem(c *gin.Context, fs http.FileSystem, path string, index bool) {
 	if path == `/` || path == `` {
 		path = `/index.html`
 	}
 	f, e := fs.Open(path)
 	if e != nil {
+		if !index {
+			h.toHTTPError(c, e)
+			return
+		}
 		if os.IsNotExist(e) {
 			path = `/index.html`
 			f, e = fs.Open(path)

@@ -55,7 +55,7 @@ func (h Helper) view(c *gin.Context) {
 		return
 	}
 	c.Header("Cache-Control", "max-age=31536000")
-	h.NegotiateFilesystem(c, filesystem, obj.Path)
+	h.NegotiateFilesystem(c, filesystem, obj.Path, !strings.HasSuffix(obj.Path, `.json`))
 }
 func (h Helper) readerHTML(c *gin.Context) {
 	f, e := filesystem.Open(`/index.html`)

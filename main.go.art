@@ -2,10 +2,10 @@ package main
 
 import ({{if gin}}
 	_ "{{pkg}}/assets/document/statik"
+	_ "{{pkg}}/assets/static/statik"{{if view}}
 	_ "{{pkg}}/assets/en-US/statik"
-	_ "{{pkg}}/assets/static/statik"
 	_ "{{pkg}}/assets/zh-Hans/statik"
-	_ "{{pkg}}/assets/zh-Hant/statik"
+	_ "{{pkg}}/assets/zh-Hant/statik"{{/if}}
 {{/if}}
 	_ "{{pkg}}/module/features/session"
 	"{{pkg}}/cmd"

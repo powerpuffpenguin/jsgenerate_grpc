@@ -31,6 +31,6 @@ Build(program, 'windows', Arch,
 
 BuildTest(program, '{{pkg}}', TestUnit, TestBench)
 BuildGRPC(program, '{{pkg}}', '{{uuid}}', {{gateway}}, {{gin}})
-{{if gin}}BuildSource(program)
+{{if gin}}BuildSource(program, {{view}})
 {{/if}}
 program.parse(process.argv)

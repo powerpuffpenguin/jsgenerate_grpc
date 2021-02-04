@@ -16,15 +16,19 @@ async function copyFile(src, dst) {
     }
 }
 class Source {
+    constructor(view) {
+        this.view = view;
+    }
     async build() {
         const cwd = path_1.normalize(path_1.join(__dirname, '..', '..'));
         await copyFile(path_1.join(cwd, 'view', 'dist', 'view', 'en', '3rdpartylicenses.txt'), path_1.join(cwd, 'static', '3rdpartylicenses.txt'));
         await this._buildStatic(cwd);
         await this._buildDocument(cwd);
-        await this._buildSource(cwd, 'zh-Hant');
-        await this._buildSource(cwd, 'zh-Hans');
-        await this._buildSource(cwd, 'en-US');
-        'echo statik -src="$DirRoot/view/dist/view/$1" -dest "$DirRoot/assets/$1"  -ns "$1" -f';
+        if (this.view) {
+            await this._buildSource(cwd, 'zh-Hant');
+            await this._buildSource(cwd, 'zh-Hans');
+            await this._buildSource(cwd, 'en-US');
+        }
     }
     async _buildSource(cwd, name) {
         const file = 'statik';
@@ -63,11 +67,11 @@ class Source {
         });
     }
 }
-function BuildSource(program) {
+function BuildSource(program, view) {
     program.command('source')
         .description(`build static source to golang code`)
         .action(function () {
-        const source = new Source();
+        const source = new Source(view);
         source.build().catch(() => {
             process.exit(1);
         });
