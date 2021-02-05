@@ -40,26 +40,26 @@ service Service {
 message TouristRequest{
 }
 message TouristResponse{
-    // Access jwt token
-    string Access = 1;
-    // Refresh jwt token
-    string Refresh = 2;
+    // access jwt token
+    string access = 1;
+    // refresh jwt token
+    string refresh = 2;
 }
 message SigninRequest{
     string name = 1;
     string password = 2;
 }
 message SigninResponse{
-    // Access jwt token
-    string Access = 1;
-    // Refresh jwt token
-    string Refresh = 2;
+    // access jwt token
+    string access = 1;
+    // refresh jwt token
+    string refresh = 2;
 }
 message RefreshRequest{
 }
 message RefreshResponse{
-    // Access jwt token
-    string Access = 1;
+    // access jwt token
+    string access = 1;
 }
 message PasswordRequest{
     // old password

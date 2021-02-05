@@ -56,13 +56,13 @@ local GB = 1024*MB;
 		// key save filename 
 		Filename: "jwtkey.json",
 		// access token expiration duration
-		Access: Day,
+		Access: Hour * 6,
 		// refresh token expiration duration
-		Refresh: Day,
+		Refresh: Day * 7,
 		// tourist access token expiration duration
-		TouristAccess: Day * 365,
+		TouristAccess: Day * 30,
 		// tourist refresh token expiration duration
-		TouristRefresh: Day * 365,
+		TouristRefresh: Day * 30 * 12,
 	},{{if db}}
 	DB: {
 		// driver [mysql mssql sqlite3]

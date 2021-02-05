@@ -126,9 +126,11 @@ function jsgenerate(context) {
             }
             if (nameService.isTemplate(name)) {
                 const text = context.template(src, md);
+                console.log('renderTo', filename);
                 context.writeFile(filename, text, stat.mode);
             }
             else {
+                console.log('copyTo', filename);
                 await context.copyFile(filename, src, stat.mode);
             }
         }, async function (name, _, stat) {
@@ -136,6 +138,7 @@ function jsgenerate(context) {
                 return;
             }
             const filename = nameService.getOutput(name);
+            console.log('mkdir', filename);
             await context.mkdir(filename, true, stat.mode);
         }).then(() => {
             console.log(`jsgenerate success`);

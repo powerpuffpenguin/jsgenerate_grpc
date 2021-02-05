@@ -132,8 +132,10 @@ export function jsgenerate(context: Context) {
                 }
                 if (nameService.isTemplate(name)) {
                     const text = context.template(src, md)
+                    console.log('renderTo', filename)
                     context.writeFile(filename, text, stat.mode)
                 } else {
+                    console.log('copyTo', filename)
                     await context.copyFile(filename, src, stat.mode)
                 }
             },
@@ -142,6 +144,7 @@ export function jsgenerate(context: Context) {
                     return
                 }
                 const filename = nameService.getOutput(name)
+                console.log('mkdir', filename)
                 await context.mkdir(filename, true, stat.mode)
             },
         ).then(() => {

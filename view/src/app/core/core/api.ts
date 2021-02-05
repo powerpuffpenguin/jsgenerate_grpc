@@ -4,7 +4,7 @@ const root = '/api'
 export const ServerAPI = {
     v1: {
         features: {
-            session: new RESTful(root, 'v1', 'features/session'),
+            sessions: new RESTful(root, 'v1', 'features/sessions'),
         },
     },
     static: {
