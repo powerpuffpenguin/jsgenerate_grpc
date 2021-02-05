@@ -8,3 +8,16 @@
 .iconfont{
     font-size: 24px;
 }
+.fullwidth{
+    width: 100%;
+}
+@media screen and (max-width: 851px){ 
+    .dialog-content {
+        min-width: calc(100vw - 250px);
+    }
+}
+@media screen and (min-width: 850px){ 
+    .dialog-content {
+        min-width: 600px;
+    }
+}

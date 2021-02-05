@@ -8,4 +8,8 @@ class Session {
 export class SessionService {
 
   constructor() { }
+
+  async login(name: string, password: string, remember: boolean) {
+    return new Session()
+  }
 }

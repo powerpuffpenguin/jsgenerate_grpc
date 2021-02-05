@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { getItem } from "../utils/local-storage";
+import { getItem, setItem } from "../utils/local-storage";
 
 const ThemeKey = 'settings.theme'
 export const DefaultTheme = 'deeppurple-amber'
@@ -27,6 +27,7 @@ export class SettingsService {
       throw new Error(`theme not supported : ${theme}`);
     }
     this.theme_.next(theme)
+    setItem(ThemeKey, theme)
   }
 }
 function loadTheme(): string {

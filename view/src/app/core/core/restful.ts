@@ -1,7 +1,7 @@
 import { HttpHeaders, HttpParams, HttpClient, HttpUrlEncodingCodec } from '@angular/common/http';
 import { Observable } from 'rxjs';
 export function resolveError(e: any): string {
-    console.log(e)
+    console.warn(e)
     if (!e) {
         return "nil"
     }

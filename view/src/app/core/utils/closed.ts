@@ -18,4 +18,32 @@ export class Closed {
     get isNotClosed(): boolean {
         return !this.closed_.value
     }
+    watchPromise<T>(promise: Promise<T>,
+        onfulfilled?: (value: T) => void,
+        onrejected?: (reason: any) => void,
+        onfinally?: () => void,
+    ) {
+        let watch: Promise<any> = promise
+        if (onfulfilled) {
+            watch = watch.then((value) => {
+                if (this.isNotClosed) {
+                    onfulfilled(value)
+                }
+            })
+        }
+        if (onrejected) {
+            watch = watch.catch((e) => {
+                if (this.isNotClosed) {
+                    onrejected(e)
+                }
+            })
+        }
+        if (onfinally) {
+            watch.finally(() => {
+                if (this.isNotClosed) {
+                    onfinally()
+                }
+            })
+        }
+    }
 }
