@@ -15,6 +15,23 @@ export class RequireComponent implements OnInit {
 
   ngOnInit(): void {
   }
+  onClickMD5() {
+    if (this.disabled) {
+      return
+    }
+    this.disabled = true
+    RequireNet('md5').then((md5) => {
+      const at = new Date().toString()
+      const v = md5(at)
+      console.log(at, v)
+      this.toasterService.pop('success', undefined, `${at} : ${v}`)
+    }).catch((e) => {
+      console.log(e)
+      this.toasterService.pop('error', undefined, e)
+    }).finally(() => {
+      this.disabled = false
+    })
+  }
   onClickRequireSingle() {
     if (this.disabled) {
       return
