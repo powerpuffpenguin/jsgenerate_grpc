@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { ToasterService } from 'angular2-toaster';
+import { Closed } from 'src/app/core/utils/closed';
 import { RequireNet } from 'src/app/core/utils/requirenet';
 
 @Component({
@@ -7,13 +8,51 @@ import { RequireNet } from 'src/app/core/utils/requirenet';
   templateUrl: './require.component.html',
   styleUrls: ['./require.component.scss']
 })
-export class RequireComponent implements OnInit {
+export class RequireComponent implements OnInit, AfterViewInit, OnDestroy {
   disabled = false
+  content = 'kate beckinsale is so beauty'
+  private closed_ = new Closed()
   constructor(
     private readonly toasterService: ToasterService,
   ) { }
 
   ngOnInit(): void {
+  }
+  @ViewChild("clipboard")
+  private readonly clipboard_: ElementRef | undefined
+  private clipboardjs_: any
+  ngAfterViewInit() {
+    RequireNet('clipboard').then((ClipboardJS) => {
+      if (this.closed_.isClosed) {
+        return
+      }
+      this.clipboardjs_ = new ClipboardJS(this.clipboard_?.nativeElement).on('success', () => {
+        if (this.closed_.isNotClosed) {
+          this.toasterService.pop('info', '', "copied")
+        }
+      }).on('error', (evt: any) => {
+        if (this.closed_.isNotClosed) {
+          this.toasterService.pop('error', undefined, "copied error")
+          console.error('Action:', evt.action)
+          console.error('Trigger:', evt.trigger)
+        }
+      })
+    })
+  }
+  ngOnDestroy() {
+    this.closed_.close()
+    if (this.clipboardjs_) {
+      this.clipboardjs_.destroy()
+      this.clipboardjs_ = null
+    }
+  }
+  onCliCkCopyClipboard() {
+    const element = this.clipboard_?.nativeElement
+    element?.setAttribute(
+      'data-clipboard-text',
+      this.content,
+    )
+    element?.click()
   }
   onClickMD5() {
     if (this.disabled) {
