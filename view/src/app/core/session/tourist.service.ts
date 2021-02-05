@@ -118,9 +118,7 @@ export class TouristService {
       // request refresh token
       try {
         const response = await ServerAPI.v1.features.sessions.post<RefreshResponse>(this.httpClient,
-          {
-            "__fill": 1,
-          },
+          undefined,
           {
             headers: {
               'Content-Type': 'application/json',

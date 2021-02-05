@@ -58,6 +58,8 @@ func headerToGRPC(key string) (string, bool) {
 	case `Connection`:
 		fallthrough
 	case `Content-Type`:
+		fallthrough
+	case `Content-Length`:
 		return key, false
 	default:
 		return key, true
