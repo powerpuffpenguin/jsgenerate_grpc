@@ -58,41 +58,26 @@ function wrapObservable<T>() {
     }
 }
 export class RESTful {
-    constructor(public root: string, public version: string, public url: string) {
-
+    constructor(public readonly root: string, public readonly version: string, public readonly url: string) {
+        this.baseURL_ = `${root}/${version}/${url}`
     }
+    private baseURL_ = ''
     get baseURL(): string {
-        return `${this.root}/${this.version}/${this.url}`
+        return this.baseURL_
     }
-    getURL(
-        queryParams?: {
-            [param: string]: string | ReadonlyArray<string>;
-        },
-        ...id: Array<string | number | boolean>
-    ) {
+    httpURL(...path: Array<string | number | boolean>): string {
         let url = this.baseURL
-        if (id && id.length > 0) {
-            for (let i = 0; i < id.length; i++) {
+        if (path && path.length > 0) {
+            for (let i = 0; i < path.length; i++) {
                 const codec = new HttpUrlEncodingCodec()
-                id[i] = codec.encodeKey(id[i].toString())
+                path[i] = codec.encodeKey(path[i].toString())
             }
-            url += '/' + id.join('/')
-        }
-        if (queryParams) {
-            const query = new HttpParams({
-                fromObject: queryParams,
-            }).toString()
-            if (query.length > 0) {
-                url = `${url}?${query}`
-            }
+            url += '/' + path.join('/')
         }
         return url
     }
     websocketURL(
-        queryParams?: {
-            [param: string]: string | ReadonlyArray<string>;
-        },
-        ...id: Array<string | number | boolean>
+        ...path: Array<string | number | boolean>
     ): string {
         const location = document.location
         let addr: string
@@ -112,6 +97,107 @@ export class RESTful {
                 addr += `:${location.port}`
             }
         }
-        return `${addr}${this.getURL(queryParams, ...id)}`
+        return `${addr}${this.httpURL(...path)}`
+    }
+    get<T>(client: HttpClient,
+        options?: {
+            headers?: HttpHeaders | {
+                [header: string]: string | string[];
+            };
+            observe?: 'body';
+            params?: HttpParams | {
+                [param: string]: string | string[];
+            };
+            reportProgress?: boolean;
+            responseType?: 'json';
+            withCredentials?: boolean;
+        },
+        ...path: Array<string | number | boolean>
+    ): Observable<T>;
+    get(client: HttpClient,
+        options: {
+            headers?: HttpHeaders | {
+                [header: string]: string | string[];
+            };
+            observe?: 'body';
+            params?: HttpParams | {
+                [param: string]: string | string[];
+            };
+            reportProgress?: boolean;
+            responseType: 'text';
+            withCredentials?: boolean;
+        },
+        ...path: Array<string | number | boolean>
+    ): Observable<string>;
+    get(client: HttpClient, options?: any, ...path: Array<string | number | boolean>): any {
+        return client.get(this.httpURL(...path), options).pipe(wrapObservable())
+    }
+    post<T>(client: HttpClient, body: any | null,
+        options?: {
+            headers?: HttpHeaders | {
+                [header: string]: string | string[];
+            };
+            observe?: 'body';
+            params?: HttpParams | {
+                [param: string]: string | string[];
+            };
+            reportProgress?: boolean;
+            responseType?: 'json';
+            withCredentials?: boolean;
+        },
+        ...path: Array<string | number | boolean>
+    ): Observable<T> {
+        return client.post<T>(this.httpURL(...path), body, options).pipe(wrapObservable())
+    }
+    delete<T>(client: HttpClient,
+        options?: {
+            headers?: HttpHeaders | {
+                [header: string]: string | string[];
+            };
+            observe?: 'body';
+            params?: HttpParams | {
+                [param: string]: string | string[];
+            };
+            reportProgress?: boolean;
+            responseType?: 'json';
+            withCredentials?: boolean;
+        },
+        ...path: Array<string | number | boolean>
+    ): Observable<T> {
+        return client.delete<T>(this.httpURL(...path), options).pipe(wrapObservable())
+    }
+    put<T>(client: HttpClient, body: any | null,
+        options?: {
+            headers?: HttpHeaders | {
+                [header: string]: string | string[];
+            };
+            observe?: 'body';
+            params?: HttpParams | {
+                [param: string]: string | string[];
+            };
+            reportProgress?: boolean;
+            responseType?: 'json';
+            withCredentials?: boolean;
+        },
+        ...path: Array<string | number | boolean>
+    ): Observable<T> {
+        return client.put<T>(this.httpURL(...path), body, options).pipe(wrapObservable())
+    }
+    patch<T>(client: HttpClient, body: any | null,
+        options?: {
+            headers?: HttpHeaders | {
+                [header: string]: string | string[];
+            };
+            observe?: 'body';
+            params?: HttpParams | {
+                [param: string]: string | string[];
+            };
+            reportProgress?: boolean;
+            responseType?: 'json';
+            withCredentials?: boolean;
+        },
+        ...path: Array<string | number | boolean>
+    ): Observable<T> {
+        return client.patch<T>(this.httpURL(...path), body, options).pipe(wrapObservable())
     }
 }

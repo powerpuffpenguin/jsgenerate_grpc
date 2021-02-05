@@ -14,10 +14,11 @@ import { MatInputModule } from '@angular/material/input';
 
 import { IndexComponent } from './index/index.component';
 import { ToasterComponent } from './toaster/toaster.component';
+import { RequireComponent } from './require/require.component';
 
 
 @NgModule({
-  declarations: [IndexComponent, ToasterComponent],
+  declarations: [IndexComponent, ToasterComponent, RequireComponent],
   imports: [
     CommonModule, RouterModule, FormsModule,
     MatCardModule, MatButtonModule, MatFormFieldModule,

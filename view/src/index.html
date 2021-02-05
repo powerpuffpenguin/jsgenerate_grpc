@@ -12,8 +12,18 @@
   <link rel="stylesheet" href="/static/css/fontawesome.min.css">
   <link rel="stylesheet" href="/static/css/toaster.min.css">
 
-  <script src="/static/js/hammer.min.js"></script>
   <script src="/static/js/require.min.js"></script>
+  <script>
+    var __requireNet = require
+    requirejs.config({
+      baseUrl: '/static/js',
+      paths: {
+        'jquery': 'jquery.min',
+        'clipboard': 'clipboard.min',
+        'moment':'moment.min',
+      },
+    })
+  </script>
 </head>
 
 <body>
