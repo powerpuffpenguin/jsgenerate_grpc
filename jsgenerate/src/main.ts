@@ -128,12 +128,12 @@ export function jsgenerate(context: Context) {
                     return
                 }
                 const filename = nameService.getOutput(name)
-                if (exists(filename)) {
+                if (await exists(filename)) {
                     if (md.initSupplement) {
                         return
                     }
                     if (!md.initTrunc) {
-                        throw new Error(`file already exists`)
+                        throw new Error(`file already exists : ${filename}`)
                     }
                 }
                 if (nameService.isTemplate(name)) {
@@ -150,12 +150,12 @@ export function jsgenerate(context: Context) {
                     return
                 }
                 const filename = nameService.getOutput(name)
-                if (exists(filename)) {
+                if (await exists(filename)) {
                     if (md.initSupplement) {
                         return
                     }
                     if (!md.initTrunc) {
-                        throw new Error(`directory already exists`)
+                        throw new Error(`directory already exists : ${filename}`)
                     }
                 }
                 console.log('mkdir', filename)

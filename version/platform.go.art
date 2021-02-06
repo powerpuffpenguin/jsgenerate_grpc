@@ -1,0 +1,15 @@
+package version
+
+import (
+	"runtime"
+{{if gin}}
+	"github.com/gin-gonic/gin"{{/if}}
+	"google.golang.org/grpc"
+)
+
+// Platform .
+var Platform = runtime.GOOS +
+	` ` + runtime.GOARCH +
+	` ` + runtime.Version() +
+	` grpc` + grpc.Version{{if gin}} +
+	` gin-` + gin.Version{{/if}}

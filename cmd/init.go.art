@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"runtime"
 
 	"{{pkg}}/version"
 
@@ -20,13 +19,13 @@ var rootCmd = &cobra.Command{
 	Short: `generate tools create full`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if v {
-			fmt.Println(runtime.GOOS, runtime.GOARCH, runtime.Version())
+			fmt.Println(version.Platform)
 			fmt.Println(version.Tag)
 			fmt.Println(version.Commit)
 			fmt.Println(version.Date)
 		} else {
 			fmt.Println(App)
-			fmt.Println(runtime.GOOS, runtime.GOARCH, runtime.Version())
+			fmt.Println(version.Platform)
 			fmt.Println(version.Tag)
 			fmt.Println(version.Commit)
 			fmt.Println(version.Date)

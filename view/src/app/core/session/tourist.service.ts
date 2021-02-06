@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { ServerAPI } from '../core/api';
+import { Authorization, ServerAPI } from '../core/api';
 import jwtDecode from 'jwt-decode';
 import { getItem, setItem } from "../utils/local-storage";
 import { Completer } from '../utils/completer';
@@ -56,6 +56,60 @@ export class Token {
     let name = this.data_.name ?? ''
     const nickname = this.data_.nickname ?? ''
     return nickname.length == 0 ? name : `${nickname} [${name}]`
+  }
+  get root(): boolean {
+    return this.anyAuth(Authorization.Root)
+  }
+  get authorization(): Array<number> {
+    if (!this.data_ || !this.data_.authorization || !Array.isArray(this.data_.authorization)) {
+      return []
+    }
+    return this.data_.authorization
+  }
+  /**
+   * if has all authorization return true
+   */
+  testAuth(...vals: Array<number>): boolean {
+    const authorization = this.authorization
+    for (let i = 0; i < authorization.length; i++) {
+      for (let j = 0; j < vals.length; j++) {
+        const val = vals[j]
+        if (authorization[i] != val) {
+          return false
+        }
+      }
+    }
+    return true
+  }
+  /**
+   * if not has any authorization return true
+   */
+  noneAuth(...vals: Array<number>): boolean {
+    const authorization = this.authorization
+    for (let i = 0; i < authorization.length; i++) {
+      for (let j = 0; j < vals.length; j++) {
+        const val = vals[j]
+        if (authorization[i] == val) {
+          return false
+        }
+      }
+    }
+    return true
+  }
+  /**
+   * if has any authorization return true
+   */
+  anyAuth(...vals: Array<number>): boolean {
+    const authorization = this.authorization
+    for (let i = 0; i < authorization.length; i++) {
+      for (let j = 0; j < vals.length; j++) {
+        const val = vals[j]
+        if (authorization[i] == val) {
+          return true
+        }
+      }
+    }
+    return false
   }
 }
 export function loadToken(key: string): Token | undefined {

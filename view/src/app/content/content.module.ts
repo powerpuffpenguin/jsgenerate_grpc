@@ -5,16 +5,18 @@ import { ContentRoutingModule } from './content-routing.module';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
 
 import { AboutComponent } from './about/about.component';
 import { LicenseComponent } from './license/license.component';
+import { VersionComponent } from './version/version.component';
 
 
 @NgModule({
-  declarations: [AboutComponent, LicenseComponent],
+  declarations: [AboutComponent, LicenseComponent, VersionComponent],
   imports: [
     CommonModule,
-    MatButtonModule, MatIconModule,
+    MatButtonModule, MatIconModule, MatCardModule,
     ContentRoutingModule
   ]
 })

@@ -11,6 +11,9 @@
 .fullwidth{
     width: 100%;
 }
+.viewcard{
+    padding: 18px 8px 8px;
+}
 @media screen and (max-width: 851px){ 
     .dialog-content {
         min-width: calc(100vw - 250px);

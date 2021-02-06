@@ -1,0 +1,35 @@
+package system
+
+import (
+	"context"
+
+	grpc_system "{{pkg}}/protocol/features/system"
+	"{{pkg}}/version"
+
+	"{{pkg}}/module"
+)
+
+type _Impl struct {
+	module.Service
+}
+
+var emptyDetailResponse grpc_system.DetailResponse
+
+func (s _Impl) Detail(ctx context.Context, request *grpc_system.DetailRequest) (response *grpc_system.DetailResponse, e error) {
+	// TAG := `system Detail`
+	s.ServeMessage(ctx, startAt, func(nobody bool) error {
+		if nobody {
+			response = &emptyDetailResponse
+		} else {
+			response = &grpc_system.DetailResponse{
+				Platform: version.Platform,
+				Tag:      version.Tag,
+				Commit:   version.Commit,
+				Date:     version.Date,
+				StartAt:  startAt.Unix(),
+			}
+		}
+		return nil
+	})
+	return
+}

@@ -44,20 +44,21 @@
             <ng-container i18n>Password</ng-container>
         </button>
         <mat-divider></mat-divider>
-        <!-- <ng-container *ngIf="isRoot();then rootView;"></ng-container> -->
+        <ng-container *ngIf="access?.root;then rootView;"></ng-container>
         <ng-template #rootView>
-            <a routerLink="/user">
-                <button mat-menu-item>
-                    <mat-icon>supervised_user_circle</mat-icon>
-                    <ng-container i18n>User Management</ng-container>
-                </button>
+            <a mat-menu-item routerLink="/user">
+                <mat-icon>supervised_user_circle</mat-icon>
+                <ng-container i18n>User Management</ng-container>
             </a>
             <mat-divider></mat-divider>
-            <a routerLink="/logger">
-                <button mat-menu-item>
-                    <mat-icon>textsms</mat-icon>
-                    <ng-container i18n>Logger Management</ng-container>
-                </button>
+            <a mat-menu-item routerLink="/logger">
+                <mat-icon>textsms</mat-icon>
+                <ng-container i18n>Logger Management</ng-container>
+            </a>
+            <mat-divider></mat-divider>
+            <a mat-menu-item routerLink="/content/version">
+                <mat-icon>bug_report</mat-icon>
+                <ng-container i18n>Version</ng-container>
             </a>
             <mat-divider></mat-divider>
         </ng-template>

@@ -15,15 +15,6 @@ service Service {
         };
     }{{else}};{{/if}}
 }
-
-message Data {
-    int64 id = 1;
-    // [a-zA-Z][a-zA-Z0-9]{4,}
-    string name = 2;   
-    string nickname = 3;
-    // * 1 Root
-    repeated int32 authorization = 4;
-}
 message DetailRequest{
 }
 message DetailResponse{

@@ -8,6 +8,7 @@ import ({{if gin}}
 	_ "{{pkg}}/assets/zh-Hant/statik"{{/if}}
 {{/if}}
 	_ "{{pkg}}/module/features/session"
+	_ "{{pkg}}/module/features/system"
 	"{{pkg}}/cmd"
 	"log"
 {{if db}}
