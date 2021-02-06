@@ -49,6 +49,14 @@ export class Token {
   get valid(): boolean {
     return this.seconds >= 0
   }
+  get who(): string {
+    if (!this.data_) {
+      return ''
+    }
+    let name = this.data_.name ?? ''
+    const nickname = this.data_.nickname ?? ''
+    return nickname.length == 0 ? name : `${nickname} [${name}]`
+  }
 }
 export function loadToken(key: string): Token | undefined {
   const tokenString = getItem(key)

@@ -5,6 +5,8 @@ import { Closed } from 'src/app/core/utils/closed';
 import { environment } from 'src/environments/environment';
 import { MatDialog } from '@angular/material/dialog';
 import { SignInComponent } from '../sign-in/sign-in.component';
+import { SessionService } from 'src/app/core/session/session.service';
+import { Token } from 'src/app/core/session/tourist.service';
 const Themes = [
   {
     id: 'deeppurple-amber',
@@ -29,18 +31,13 @@ const Themes = [
   styleUrls: ['./navigation-bar.component.scss']
 })
 export class NavigationBarComponent implements OnInit, OnDestroy {
-
   constructor(private readonly settingsService: SettingsService,
     private readonly matDialog: MatDialog,
+    private readonly sessionService: SessionService,
   ) {
-    this.theme = settingsService.getTheme()
-    settingsService.theme.pipe(
-      filter((v) => v != this.theme),
-      takeUntil(this.closed_.observable),
-    ).subscribe((theme) => {
-      this.theme = theme
-    })
   }
+  ready = false
+  access: Token | undefined
   private closed_ = new Closed()
   themes = Themes
   theme = ''
@@ -48,7 +45,22 @@ export class NavigationBarComponent implements OnInit, OnDestroy {
     return environment.production
   }
   ngOnInit(): void {
-
+    const settingsService = this.settingsService
+    this.theme = settingsService.getTheme()
+    settingsService.theme.pipe(
+      filter((v) => v != this.theme),
+      takeUntil(this.closed_.observable),
+    ).subscribe((theme) => {
+      this.theme = theme
+    })
+    this.sessionService.ready.then(() => {
+      this.ready = true
+    })
+    this.sessionService.access.pipe(
+      takeUntil(this.closed_.observable),
+    ).subscribe((access) => {
+      this.access = access
+    })
   }
   ngOnDestroy() {
     this.closed_.close()
@@ -67,5 +79,11 @@ export class NavigationBarComponent implements OnInit, OnDestroy {
   }
   onClickSignin() {
     this.matDialog.open(SignInComponent)
+  }
+  onClickSignout() {
+    this.sessionService.signout()
+  }
+  onClickPassword() {
+
   }
 }

@@ -1,12 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { RequireNet } from '../utils/requirenet';
 import { TouristService, Token, loadToken, RefreshResponse, Response, generateHeader } from './tourist.service';
 import { Completer } from '../utils/completer';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ServerAPI } from '../core/api';
-import { setItem } from "../utils/local-storage";
-import { getUnix, getUUID, md5String } from '../utils/utils';
+import { removeItem, setItem } from "../utils/local-storage";
+import { getUnix, md5String } from '../utils/utils';
+import { map } from 'rxjs/operators';
 
 const AccessKey = 'token.session.access'
 const RefreshKey = 'token.session.refresh'
@@ -22,14 +22,17 @@ export class SessionService {
   get ready(): Promise<void> {
     return this.ready_.promise
   }
-  get session(): Promise<Session | undefined> {
-    return this.ready.then(() => {
-      return this.subject_.value
-    })
+  get session(): Session | undefined {
+    return this.subject_.value
   }
   private readonly subject_ = new BehaviorSubject<Session | undefined>(undefined)
   get observable(): Observable<Session | undefined> {
     return this.subject_
+  }
+  get access(): Observable<Token | undefined> {
+    return this.subject_.pipe(
+      map((session) => session ? session.access : undefined)
+    )
   }
   private remember_ = false
   constructor(private readonly httpClient: HttpClient,
@@ -139,11 +142,12 @@ export class SessionService {
   get signining(): Observable<boolean> {
     return this.signining_
   }
-  async signin(name: string, password: string, remember: boolean) {
+  async signin(name: string, password: string, remember: boolean): Promise<Token | undefined> {
     if (this.signining_.value) {
       console.warn('wait signing completed')
       return
     }
+
     this.signining_.next(true)
     try {
       const tourist = await this.touristService.accessValid()
@@ -176,8 +180,18 @@ export class SessionService {
       }
       this.remember_ = remember
       this.subject_.next(new Session(access, refresh))
+      return access
     } finally {
       this.signining_.next(false)
+    }
+  }
+  signout() {
+    if (this.subject_.value) {
+      if (this.remember_) {
+        removeItem(AccessKey)
+        removeItem(RefreshKey)
+      }
+      this.subject_.next(undefined)
     }
   }
 }

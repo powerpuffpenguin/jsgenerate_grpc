@@ -55,8 +55,8 @@ export function getItem(key: string, def?: string): string | null {
 export function setItem(key: string, value: string) {
     Bridge.instance.setItem(key, value)
 }
-export function removeItem(key: string, value: string) {
-    Bridge.instance.setItem(key, value)
+export function removeItem(key: string) {
+    Bridge.instance.removeItem(key)
 }
 export function clear() {
     Bridge.instance.clear()
