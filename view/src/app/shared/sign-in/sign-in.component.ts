@@ -36,7 +36,7 @@ export class SignInComponent implements OnInit, OnDestroy {
 
     this.disabled = true
     this.closed_.watchPromise(
-      this.sessionService.login(this.name, this.password, this.remember),
+      this.sessionService.signin(this.name, this.password, this.remember),
       (session) => {
         console.log(session)
       },

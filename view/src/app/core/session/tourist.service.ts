@@ -4,13 +4,14 @@ import { ServerAPI } from '../core/api';
 import jwtDecode from 'jwt-decode';
 import { getItem, setItem } from "../utils/local-storage";
 import { Completer } from '../utils/completer';
+import { getUnix, getUUID, md5String } from '../utils/utils';
 const AccessKey = 'token.tourist.access'
 const RefreshKey = 'token.tourist.refresh'
-interface RefreshResponse {
+export interface RefreshResponse {
   // access jwt token
   access: string
 }
-interface Response extends RefreshResponse {
+export interface Response extends RefreshResponse {
   // refresh jwt token
   refresh: string
 }
@@ -90,7 +91,7 @@ export class TouristService {
   }
   async accessValid(): Promise<Token> {
     const token = await this.access()
-    if (!token.valid) {
+    if (token.seconds < 60 * 5) {
       this.access_ = undefined
       return await this.access()
     }
@@ -112,17 +113,14 @@ export class TouristService {
     return this.access_.promise
   }
   private async _refreshAccess(): Promise<Token> {
-    if (this.refresh_ && this.refresh_.valid) {
+    if (this.refresh_ && this.refresh_.seconds < 60 * 5) {
       // request refresh token
       try {
-        console.log(this.refresh_)
+        const tokent = this.refresh_
         const response = await ServerAPI.v1.features.sessions.post<RefreshResponse>(this.httpClient,
           undefined,
           {
-            headers: {
-              'Authorization': `Bearer ${this.refresh_.token}`,
-              'Interceptor': 'none',
-            },
+            headers: generateHeader(getUnix(), tokent.data.salt, tokent.token),
           },
           'refresh',
         ).toPromise()
@@ -138,26 +136,50 @@ export class TouristService {
     // request new token
     const response = await ServerAPI.v1.features.sessions.get<Response>(this.httpClient,
       {
-        headers: {
-          'Interceptor': 'none',
-        },
+        headers: generateHeader(),
       },
       'tourist',
     ).toPromise()
     const access = new Token(response.access)
-    if (access.seconds > 60) {
+    if (access.seconds > 60 * 5) {
       setItem(AccessKey, access.token)
     }
     if (typeof response.refresh === "string" && response.refresh.length > 0) {
       try {
         const refresh = new Token(response.refresh)
-        if (refresh.seconds > 60) {
+        if (refresh.seconds > 60 * 5) {
           setItem(RefreshKey, refresh.token)
         }
       } catch (e) {
-        console.warn('new refresh token error :', e)
+        console.warn('new tourist refresh token error :', e)
       }
     }
     return access
   }
+}
+export function generateHeader(
+  unix?: number,
+  slat?: string,
+  authorization?: string,
+): {
+  [header: string]: string | string[];
+} {
+  const headers: {
+    [header: string]: string | string[];
+  } = {
+    'Interceptor': 'none',
+  }
+  if (authorization) {
+    headers['Authorization'] = `Bearer ${authorization}`
+  }
+  if (unix) {
+    headers['Unix'] = unix.toString()
+    if (slat) {
+      const nonce = getUUID()
+      headers['Nonce'] = nonce
+      const signature = md5String(md5String(unix + nonce) + slat)
+      headers['Signature'] = signature
+    }
+  }
+  return headers
 }
