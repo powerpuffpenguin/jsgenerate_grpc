@@ -91,6 +91,6 @@ local GB = 1024*MB;
 		// file log level [debug info warn error dpanic panic fatal]
 		FileLevel: "info",
 		// console file level [debug info warn error dpanic panic fatal]
-		ConsoleLevel: "debug",
+		ConsoleLevel: "info",
 	},
 }

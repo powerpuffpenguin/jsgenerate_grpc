@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"{{pkg}}/configure"
@@ -85,22 +86,23 @@ func printLog(ctx context.Context, at time.Time, fullMethod string, e error, str
 			addr = pr.Addr.String()
 		}
 	}
-
-	fmt.Print(`[GRPC] `, time.Now().Format(format), ` | `,
+	var buffer bytes.Buffer
+	buffer.WriteString(fmt.Sprint(`[GRPC] `, time.Now().Format(format), ` | `,
 		time.Since(at), ` | `,
-	)
+	))
 	if e == nil {
-		fmt.Print(colorGreen, `success`, colorReset)
+		buffer.WriteString(fmt.Sprint(colorGreen, `success`, colorReset))
 	} else {
-		fmt.Print(colorRed, e, colorReset)
+		buffer.WriteString(fmt.Sprint(colorRed, e, colorReset))
 	}
-	fmt.Print(` | `, addr, ` | `)
+	buffer.WriteString(fmt.Sprint(` | `, addr, ` | `))
 	if stream {
-		fmt.Print(colorYellow, `stream`, colorReset)
+		buffer.WriteString(fmt.Sprint(colorYellow, `stream`, colorReset))
 	} else {
-		fmt.Print(colorYellow, `unary`, colorReset)
+		buffer.WriteString(fmt.Sprint(colorYellow, `unary`, colorReset))
 	}
-	fmt.Println(" ->", fullMethod)
+	buffer.WriteString(fmt.Sprintln(" ->", fullMethod))
+	fmt.Print(buffer.String())
 }
 func unaryLog(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (response interface{}, e error) {
 	at := time.Now()

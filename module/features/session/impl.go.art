@@ -44,7 +44,7 @@ func (s _Impl) Tourist(ctx context.Context, request *grpc_session.TouristRequest
 
 func (s _Impl) Signin(ctx context.Context, request *grpc_session.SigninRequest) (response *grpc_session.SigninResponse, e error) {
 	TAG := `session Signin`
-	session, e := s.Session(ctx)
+	session, e := s.AccessSession(ctx)
 	if e != nil {
 		return
 	}
@@ -93,7 +93,7 @@ func (s _Impl) Signin(ctx context.Context, request *grpc_session.SigninRequest) 
 }
 func (s _Impl) Refresh(ctx context.Context, request *grpc_session.RefreshRequest) (response *grpc_session.RefreshResponse, e error) {
 	// TAG := `session Refresh`
-	session, e := s.Session(ctx)
+	session, e := s.RefreshSession(ctx)
 	if e != nil {
 		return
 	}
@@ -121,7 +121,7 @@ func (s _Impl) Password(ctx context.Context, request *grpc_session.PasswordReque
 		e = s.Error(codes.InvalidArgument, `password not changed`)
 		return
 	}
-	session, e := s.Session(ctx)
+	session, e := s.AccessSession(ctx)
 	if e != nil {
 		return
 	}

@@ -97,7 +97,6 @@ export class TouristService {
     return token
   }
   async access(): Promise<Token> {
-    this.access_ = undefined
     if (!this.access_) {
       this.access_ = new Completer<Token>()
       try {
@@ -113,16 +112,16 @@ export class TouristService {
     return this.access_.promise
   }
   private async _refreshAccess(): Promise<Token> {
-    console.log(this.refresh_, this.refresh_?.valid)
     if (this.refresh_ && this.refresh_.valid) {
       // request refresh token
       try {
+        console.log(this.refresh_)
         const response = await ServerAPI.v1.features.sessions.post<RefreshResponse>(this.httpClient,
           undefined,
           {
             headers: {
-              'Content-Type': 'application/json',
-              // 'Interceptor': 'none',
+              'Authorization': `Bearer ${this.refresh_.token}`,
+              'Interceptor': 'none',
             },
           },
           'refresh',
@@ -134,7 +133,6 @@ export class TouristService {
         return access
       } catch (e) {
         throw e
-        console.warn('tourist refresh tokent error :', e)
       }
     }
     // request new token
@@ -148,7 +146,7 @@ export class TouristService {
     ).toPromise()
     const access = new Token(response.access)
     if (access.seconds > 60) {
-      //setItem(AccessKey, access.token)
+      setItem(AccessKey, access.token)
     }
     if (typeof response.refresh === "string" && response.refresh.length > 0) {
       try {

@@ -4,7 +4,7 @@ exports.jsgenerate = exports.description = exports.tag = void 0;
 const fs_1 = require("fs");
 const helper_1 = require("./helper");
 const path_1 = require("path");
-exports.tag = 'default gateway gin db view init-trunc';
+exports.tag = 'default gateway gin db view init-trunc init-supplement';
 exports.description = 'google grpc frame template';
 async function exists(filename) {
     try {
@@ -26,6 +26,7 @@ class Metadata {
         this.db = false;
         this.view = false;
         this.initTrunc = false;
+        this.initSupplement = false;
         this.grpcPrefix = 'jsgenerate_';
         pkg = pkg.replace('.', '/').replace('@', '').replace('-', '_');
         pkg = pkg.replace('//', '/').replace('__', '_');
@@ -60,6 +61,9 @@ class Metadata {
                 }
                 else if (v == 'init-trunc') {
                     this.initTrunc = true;
+                }
+                else if (v == 'init-supplement') {
+                    this.initSupplement = true;
                 }
             }
         }
@@ -120,6 +124,9 @@ function jsgenerate(context) {
             }
             const filename = nameService.getOutput(name);
             if (exists(filename)) {
+                if (md.initSupplement) {
+                    return;
+                }
                 if (!md.initTrunc) {
                     throw new Error(`file already exists`);
                 }
@@ -138,6 +145,14 @@ function jsgenerate(context) {
                 return;
             }
             const filename = nameService.getOutput(name);
+            if (exists(filename)) {
+                if (md.initSupplement) {
+                    return;
+                }
+                if (!md.initTrunc) {
+                    throw new Error(`directory already exists`);
+                }
+            }
             console.log('mkdir', filename);
             await context.mkdir(filename, true, stat.mode);
         }).then(() => {

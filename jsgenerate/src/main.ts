@@ -2,7 +2,7 @@ import { Context } from "./context";
 import { promises, constants } from "fs";
 import { Exclude, NameService } from "./helper";
 import { join, sep } from "path";
-export const tag = 'default gateway gin db view init-trunc'
+export const tag = 'default gateway gin db view init-trunc init-supplement'
 export const description = 'google grpc frame template'
 async function exists(filename: string): Promise<boolean> {
     try {
@@ -28,6 +28,7 @@ class Metadata {
     db = false
     view = false
     initTrunc = false
+    initSupplement = false
     grpcPrefix = 'jsgenerate_'
     constructor(pkg: string,
         name: string,
@@ -63,6 +64,8 @@ class Metadata {
                     this.db = true
                 } else if (v == 'init-trunc') {
                     this.initTrunc = true
+                } else if (v == 'init-supplement') {
+                    this.initSupplement = true
                 }
             }
         }
@@ -126,6 +129,9 @@ export function jsgenerate(context: Context) {
                 }
                 const filename = nameService.getOutput(name)
                 if (exists(filename)) {
+                    if (md.initSupplement) {
+                        return
+                    }
                     if (!md.initTrunc) {
                         throw new Error(`file already exists`)
                     }
@@ -144,6 +150,14 @@ export function jsgenerate(context: Context) {
                     return
                 }
                 const filename = nameService.getOutput(name)
+                if (exists(filename)) {
+                    if (md.initSupplement) {
+                        return
+                    }
+                    if (!md.initTrunc) {
+                        throw new Error(`directory already exists`)
+                    }
+                }
                 console.log('mkdir', filename)
                 await context.mkdir(filename, true, stat.mode)
             },
