@@ -25,11 +25,11 @@ import { HeaderInterceptor } from './core/interceptor/header.service';
     AppRoutingModule, ToasterModule.forRoot()
   ],
   providers: [
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: HeaderInterceptor,
-      multi: true,
-    },
+    // {
+    //   provide: HTTP_INTERCEPTORS,
+    //   useClass: HeaderInterceptor,
+    //   multi: true,
+    // },
     ToasterService,
   ],
   bootstrap: [AppComponent]

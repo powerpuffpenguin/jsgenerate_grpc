@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpEvent, HttpInterceptor, HttpHandler, HttpRequest, HttpErrorResponse } from '@angular/common/http'
+import { HttpEvent, HttpInterceptor, HttpHandler, HttpRequest } from '@angular/common/http'
 import { Observable } from 'rxjs';
 import { SessionService } from '../../core/session/session.service';
 import { getUnix, getUUID, md5String } from '../utils/utils';
@@ -10,6 +10,7 @@ export class HeaderInterceptor implements HttpInterceptor {
   constructor(public readonly sessionService: SessionService) { }
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     let headers = req.headers
+    console.log(`------------------headers`, headers)
     if (headers.has(`Interceptor`)) {
       const interceptor = headers.get(`Interceptor`)
       headers = headers.delete(`Interceptor`)
