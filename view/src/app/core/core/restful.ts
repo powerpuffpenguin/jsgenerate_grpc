@@ -11,7 +11,7 @@ export function resolveError(e: any): string {
     if (e !== null && typeof e === 'object' && typeof e.status === "number") {
         return resolveHttpError(e)
     }
-    return "unknow"
+    return e
 }
 export function resolveHttpError(e: any) {
     let error = e.error

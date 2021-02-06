@@ -6,7 +6,7 @@ import { environment } from 'src/environments/environment';
 import { MatDialog } from '@angular/material/dialog';
 import { SignInComponent } from '../sign-in/sign-in.component';
 import { SessionService } from 'src/app/core/session/session.service';
-import { Token } from 'src/app/core/session/tourist.service';
+import { Token } from 'src/app/core/session/manager';
 const Themes = [
   {
     id: 'deeppurple-amber',

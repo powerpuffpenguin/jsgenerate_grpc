@@ -3,7 +3,7 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { ToasterService } from 'angular2-toaster';
 import { map, takeUntil } from 'rxjs/operators';
 import { SessionService } from 'src/app/core/session/session.service';
-import { Token } from 'src/app/core/session/tourist.service';
+import { Token } from 'src/app/core/session/manager';
 import { Closed } from 'src/app/core/utils/closed';
 
 @Component({

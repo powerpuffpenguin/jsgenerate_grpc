@@ -1,12 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { TouristService, Token, loadToken, RefreshResponse, Response, generateHeader } from './tourist.service';
+import { TouristService, loadToken, RefreshResponse, Response, generateHeader } from './tourist.service';
 import { Completer } from '../utils/completer';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ServerAPI } from '../core/api';
 import { removeItem, setItem } from "../utils/local-storage";
 import { getUnix, md5String } from '../utils/utils';
 import { map } from 'rxjs/operators';
+import { Manager, Token } from './manager';
 
 const AccessKey = 'token.session.access'
 const RefreshKey = 'token.session.refresh'
@@ -60,6 +61,14 @@ export class SessionService {
     }
     this._restore(access, refresh)
   }
+  private _nextSession(session: Session | undefined) {
+    if (session) {
+      Manager.instance.access = session.access
+    } else {
+      Manager.instance.access = undefined
+    }
+    this.subject_.next(session)
+  }
   private async _restore(access?: Token, refresh?: Token) {
     let session: Session | undefined
     try {
@@ -81,7 +90,7 @@ export class SessionService {
       this.ready_.resolve()
       if (session) {
         this.remember_ = true
-        this.subject_.next(session)
+        this._nextSession(session)
       }
     }
   }
@@ -179,7 +188,7 @@ export class SessionService {
         }
       }
       this.remember_ = remember
-      this.subject_.next(new Session(access, refresh))
+      this._nextSession(new Session(access, refresh))
       return access
     } finally {
       this.signining_.next(false)
@@ -191,7 +200,7 @@ export class SessionService {
         removeItem(AccessKey)
         removeItem(RefreshKey)
       }
-      this.subject_.next(undefined)
+      this._nextSession(undefined)
     }
   }
 }

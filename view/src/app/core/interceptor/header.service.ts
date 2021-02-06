@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
-import { HttpEvent, HttpInterceptor, HttpHandler, HttpRequest } from '@angular/common/http'
-import { Observable } from 'rxjs';
-import { SessionService } from '../../core/session/session.service';
+import { HttpEvent, HttpInterceptor, HttpHandler, HttpRequest, HttpErrorResponse } from '@angular/common/http'
+import { from, Observable } from 'rxjs';
 import { getUnix, getUUID, md5String } from '../utils/utils';
+import { Manager } from '../session/manager';
+import { catchError, concatAll, first, mapTo } from 'rxjs/operators';
 
 
 @Injectable()
 export class HeaderInterceptor implements HttpInterceptor {
-  constructor(public readonly sessionService: SessionService) { }
+  constructor() { }
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     let headers = req.headers
-    console.log(`------------------headers`, headers)
     if (headers.has(`Interceptor`)) {
       const interceptor = headers.get(`Interceptor`)
       headers = headers.delete(`Interceptor`)
@@ -24,7 +24,7 @@ export class HeaderInterceptor implements HttpInterceptor {
     if (req.method == "GET" || req.method == "HEAD") {
       headers = headers.set('ngsw-bypass', '')
     }
-    const access = this.sessionService.session?.access
+    const access = Manager.instance.access
     if (access) {
       if (!headers.has('Authorization')) {
         headers = headers.set('Authorization', `Bearer ${access.token}`)
@@ -44,16 +44,24 @@ export class HeaderInterceptor implements HttpInterceptor {
     }
     return next.handle(req.clone({
       headers: headers,
-    }))
-    // .pipe(
-    //   catchError((err, caught) => {
-    //     if (err instanceof HttpErrorResponse) {
-    //       if (err.status === 401) {
-
-    //       }
-    //     }
-    //     return caught
-    //   })
-    // )
+    })).pipe(
+      catchError((err, caught) => {
+        if (err instanceof HttpErrorResponse) {
+          if (err.status === 401) {
+            return from(new Promise<void>((resolve, reject) => {
+              // setTimeout(() => {
+              //   reject(new Error('test'))
+              //   // resolve()
+              // }, 1000 * 5);
+              resolve()
+            })).pipe(
+              mapTo(caught),
+              concatAll(),
+            )
+          }
+        }
+        throw err
+      }),
+    )
   }
 }
