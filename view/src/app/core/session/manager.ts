@@ -102,5 +102,14 @@ export class Manager {
     private constructor() {
     }
     access: Token | undefined
-
+    private refresh_: ((access: string) => Promise<Token | undefined>) | undefined
+    setRefresh(handler: ((access: string) => Promise<Token | undefined>)) {
+        this.refresh_ = handler
+    }
+    refresh(access: Token): Promise<Token | undefined> {
+        if (this.refresh_) {
+            return this.refresh_(access.token)
+        }
+        return Promise.resolve(undefined)
+    }
 }

@@ -39,6 +39,9 @@ export class SessionService {
   constructor(private readonly httpClient: HttpClient,
     private readonly touristService: TouristService,
   ) {
+    Manager.instance.setRefresh((access) => {
+      return this.refresh(access)
+    })
     let access: Token | undefined
     let refresh: Token | undefined
     try {
@@ -104,8 +107,8 @@ export class SessionService {
     ).toPromise()
     return new Token(response.access)
   }
-  private refresh_: Completer<string | undefined> | undefined
-  async refresh(slat: string, accessToken: string): Promise<string | undefined> {
+  private refresh_: Completer<Token | undefined> | undefined
+  async refresh(accessToken: string): Promise<Token | undefined> {
     const session = this.subject_.value
     if (!session || accessToken !== session.access?.token) {
       return
@@ -116,9 +119,9 @@ export class SessionService {
     }
 
     if (!this.refresh_) {
-      this.refresh_ = new Completer<string | undefined>()
+      this.refresh_ = new Completer<Token | undefined>()
       try {
-        const token = await this._refreshAccess(slat, accessToken, refresh.token)
+        const token = await this._refreshAccess(accessToken, refresh)
         this.refresh_.resolve(token)
       } catch (e) {
         this.refresh_.reject(e)
@@ -127,25 +130,21 @@ export class SessionService {
         return promise
       }
     }
-    return this.refresh_.promise
+    const promise = this.refresh_.promise
+    this.refresh_ = undefined
+    return promise
   }
-  private async _refreshAccess(slat: string, accessToken: string, refreshToken: string): Promise<string> {
-    const response = await ServerAPI.v1.features.sessions.post<RefreshResponse>(this.httpClient,
-      undefined,
-      {
-        headers: generateHeader(getUnix(), slat, refreshToken),
-      },
-      'refresh',
-    ).toPromise()
+  private async _refreshAccess(accessToken: string, refresh: Token): Promise<Token> {
+    const access = await this._refresh(refresh)
     const session = this.subject_.value
-    if (!session || session.access?.token != accessToken || session.refresh?.token != refreshToken) {
+    if (!session || session.access?.token != accessToken || session.refresh?.token != refresh.token) {
       throw new Error("refresh expired")
     }
-    const access = new Token(response.access)
+    this._nextSession(new Session(access, refresh))
     if (this.remember_ && access.seconds > 60) {
       setItem(AccessKey, access.token)
     }
-    return access.token
+    return access
   }
   private readonly signining_ = new BehaviorSubject<boolean>(false)
   get signining(): Observable<boolean> {
