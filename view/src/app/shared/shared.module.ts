@@ -17,10 +17,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { NavigationBarComponent } from './navigation-bar/navigation-bar.component';
 import { SignInComponent } from './sign-in/sign-in.component';
+import { PasswordComponent } from './password/password.component';
 
 
 @NgModule({
-  declarations: [NavigationBarComponent, SignInComponent],
+  declarations: [NavigationBarComponent, SignInComponent, PasswordComponent],
   imports: [
     CommonModule, RouterModule, FormsModule,
 

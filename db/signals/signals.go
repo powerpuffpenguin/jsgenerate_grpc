@@ -1,7 +1,6 @@
 package signals
 
 import (
-	"errors"
 	"sync"
 
 	"gitlab.com/king011_go/signals/metadata"
@@ -9,8 +8,6 @@ import (
 
 var (
 	defaultSignals Signals
-	// ErrSlotNotExists .
-	ErrSlotNotExists = errors.New(`slot not exists`)
 )
 
 func init() {

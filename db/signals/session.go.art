@@ -27,23 +27,21 @@ type Session struct {
 // EmitPost sign in
 func (s *Session) EmitPost(ctx context.Context, name, password, salt string) (session *jwt.Session, e error) {
 	s.locker.Lock()
-	if s.Signals.Len() == 0 {
-		e = ErrSlotNotExists
-	} else {
-		md := s.pool.Get()
-		md.Set(`name`, name)
-		md.Set(`password`, password)
-		md.Set(`salt`, password)
-		e = s.Signals.Emit(metadata.NewContext(ctx, md), SessionPost)
-		if e == nil {
-			if result, ok := md.Get(`result`); ok {
-				if val, ok := result.(*jwt.Session); ok {
-					session = val
-				}
+
+	md := s.pool.Get()
+	md.Set(`name`, name)
+	md.Set(`password`, password)
+	md.Set(`salt`, password)
+	e = s.Signals.Emit(metadata.NewContext(ctx, md), SessionPost)
+	if e == nil {
+		if result, ok := md.Get(`result`); ok {
+			if val, ok := result.(*jwt.Session); ok {
+				session = val
 			}
 		}
-		s.pool.Put(md)
 	}
+	s.pool.Put(md)
+	
 	s.locker.Unlock()
 	return
 }
@@ -78,24 +76,22 @@ func (s slotSessionPost) OnSignal(ctx context.Context) error {
 // EmitPassword change password
 func (s *Session) EmitPassword(ctx context.Context, id int64, old, password, salt string) (changed bool, e error) {
 	s.locker.Lock()
-	if s.Signals.Len() == 0 {
-		e = ErrSlotNotExists
-	} else {
-		md := s.pool.Get()
-		md.Set(`id`, id)
-		md.Set(`old`, old)
-		md.Set(`password`, password)
-		md.Set(`salt`, salt)
-		e = s.Signals.Emit(metadata.NewContext(ctx, md), SessionPassword)
-		if e == nil {
-			if result, ok := md.Get(`result`); ok {
-				if val, ok := result.(bool); ok {
-					changed = val
-				}
+
+	md := s.pool.Get()
+	md.Set(`id`, id)
+	md.Set(`old`, old)
+	md.Set(`password`, password)
+	md.Set(`salt`, salt)
+	e = s.Signals.Emit(metadata.NewContext(ctx, md), SessionPassword)
+	if e == nil {
+		if result, ok := md.Get(`result`); ok {
+			if val, ok := result.(bool); ok {
+				changed = val
 			}
 		}
-		s.pool.Put(md)
 	}
+	s.pool.Put(md)
+	
 	s.locker.Unlock()
 	return
 }

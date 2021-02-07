@@ -59,9 +59,9 @@ local GB = 1024*MB;
 		// refresh token expiration duration
 		Refresh: Day * 7,
 		// tourist access token expiration duration
-		TouristAccess: Day * 30,
+		TouristAccess: Day * 365 *10,
 		// tourist refresh token expiration duration
-		TouristRefresh: Day * 30 * 12,
+		TouristRefresh: Day * 365 *10,
 	},{{if db}}
 	DB: {
 		// driver [mysql mssql sqlite3]
