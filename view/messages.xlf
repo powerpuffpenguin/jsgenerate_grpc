@@ -13,6 +13,27 @@
           <context context-type="linenumber">9</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="2fdaddcb75a311e6ac9bb678043398e1588ddf0a" datatype="html">
+        <source>Welcome to use this system</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/content/about/about.component.html</context>
+          <context context-type="linenumber">4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4a3a61bc031934df1445644ecf5694d01fb29ad8" datatype="html">
+        <source> This is a system built by the jsgenerate_grpc framework. jsgenerate_grpc is a open source gprc framework developed by 飛天小企鵝 . For more information about jsgenerate_grpc, please see source description. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/content/about/about.component.html</context>
+          <context context-type="linenumber">8,12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3fd90eea04f791c95ae64cc088e8008ffac4f82c" datatype="html">
+        <source>Source Code </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/content/about/about.component.html</context>
+          <context context-type="linenumber">13,14</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="438fdc617a22c8dd029e74b64ab66355e36eeb9d" datatype="html">
         <source>Home Tooltip</source>
         <context-group purpose="location">
@@ -34,64 +55,107 @@
           <context context-type="linenumber">17</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="c32ef07f8803a223a83ed17024b38e8d82292407" datatype="html">
+        <source>Password</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/navigation-bar/navigation-bar.component.html</context>
+          <context context-type="linenumber">44</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
+          <context context-type="linenumber">21</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6ad31729632818476420bb0f698d617436263675" datatype="html">
+        <source>User Management</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/navigation-bar/navigation-bar.component.html</context>
+          <context context-type="linenumber">51</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="355cf87b73099d80c43b0db5c54715cb83af472d" datatype="html">
+        <source>Logger Management</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/navigation-bar/navigation-bar.component.html</context>
+          <context context-type="linenumber">56</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8fe73a4787b8068b2ba61f54ab7e0f9af2ea1fc9" datatype="html">
+        <source>Version</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/navigation-bar/navigation-bar.component.html</context>
+          <context context-type="linenumber">61</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5d22c795daf43877a5f708dca2bccd549eb0471d" datatype="html">
+        <source>Sign out</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/navigation-bar/navigation-bar.component.html</context>
+          <context context-type="linenumber">67</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="287d3301a32a65a1b31116bda5d3a6463158c42a" datatype="html">
         <source>Sign in</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/navigation-bar/navigation-bar.component.html</context>
-          <context context-type="linenumber">20</context>
+          <context context-type="linenumber">72</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
-          <context context-type="linenumber">2</context>
+          <context context-type="linenumber">4</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
+          <context context-type="linenumber">11</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="08ade5a54735040b792222377ab8defaf93590df" datatype="html">
+        <source>Welcome <x id="INTERPOLATION" equiv-text="{{access?.data?.name}}"/>, you have signed in.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
+          <context context-type="linenumber">6</context>
         </context-group>
       </trans-unit>
       <trans-unit id="cff1428d10d59d14e45edec3c735a27b5482db59" datatype="html">
         <source>Name</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
-          <context context-type="linenumber">6</context>
+          <context context-type="linenumber">15</context>
         </context-group>
       </trans-unit>
       <trans-unit id="bd4960dae6ed2a772e2ca2ecd20e1f5ff9b0641e" datatype="html">
         <source>Name Invalid</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
-          <context context-type="linenumber">8</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="c32ef07f8803a223a83ed17024b38e8d82292407" datatype="html">
-        <source>Password</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
-          <context context-type="linenumber">12</context>
+          <context context-type="linenumber">17</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2f41285b5264498e812cd5577b50bfaa0f715009" datatype="html">
         <source>Password Invalid</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
-          <context context-type="linenumber">18</context>
+          <context context-type="linenumber">27</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3eb49d60bd859eb2d9d3a6d380cdf4e0b8252333" datatype="html">
         <source>Remember me</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
-          <context context-type="linenumber">23</context>
+          <context context-type="linenumber">32</context>
         </context-group>
       </trans-unit>
       <trans-unit id="71c77bb8cecdf11ec3eead24dd1ba506573fa9cd" datatype="html">
         <source>Submit</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
-          <context context-type="linenumber">28</context>
+          <context context-type="linenumber">37</context>
         </context-group>
       </trans-unit>
       <trans-unit id="f4e529ae5ffd73001d1ff4bbdeeb0a72e342e5c8" datatype="html">
         <source>Close</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
-          <context context-type="linenumber">29</context>
+          <context context-type="linenumber">38</context>
         </context-group>
       </trans-unit>
     </body>

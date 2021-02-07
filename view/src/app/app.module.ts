@@ -9,8 +9,6 @@ import { ToasterModule, ToasterService } from 'angular2-toaster';
 
 import { SharedModule } from "./shared/shared.module";
 
-
-
 import { AppComponent } from './app.component';
 import { HeaderInterceptor } from './core/interceptor/header.service';
 

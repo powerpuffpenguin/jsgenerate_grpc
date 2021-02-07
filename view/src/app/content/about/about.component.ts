@@ -1,15 +1,50 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ServerAPI } from 'src/app/core/core/api';
+import { HttpClient } from '@angular/common/http';
+import { ToasterService } from 'angular2-toaster';
+import { takeUntil } from 'rxjs/operators';
+import { Closed } from 'src/app/core/utils/closed';
 
 @Component({
   selector: 'app-about',
   templateUrl: './about.component.html',
   styleUrls: ['./about.component.scss']
 })
-export class AboutComponent implements OnInit {
-
-  constructor() { }
-
+export class AboutComponent implements OnInit, OnDestroy {
+  private closed_ = new Closed()
+  licenses: string | undefined
+  license: string | undefined
+  constructor(
+    private readonly httpClient: HttpClient,
+    private readonly toasterService: ToasterService,
+  ) { }
   ngOnInit(): void {
+    this.httpClient.get(ServerAPI.static.license, {
+      responseType: 'text',
+    }).pipe(
+      takeUntil(this.closed_.observable),
+    ).subscribe((text) => {
+      this.license = text
+    }, (e) => {
+      this.toasterService.pop('error',
+        undefined,
+        e,
+      )
+    })
+    this.httpClient.get(ServerAPI.static.licenses, {
+      responseType: 'text',
+    }).pipe(
+      takeUntil(this.closed_.observable),
+    ).subscribe((text) => {
+      this.licenses = text
+    }, (e) => {
+      this.toasterService.pop('error',
+        undefined,
+        e,
+      )
+    })
   }
-
+  ngOnDestroy() {
+    this.closed_.close()
+  }
 }

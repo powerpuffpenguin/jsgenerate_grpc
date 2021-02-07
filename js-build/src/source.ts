@@ -19,7 +19,7 @@ class Source {
     }
     async build() {
         const cwd = normalize(join(__dirname, '..', '..'))
-        await copyFile(join(cwd, 'view', 'dist', 'view', 'en', '3rdpartylicenses.txt'), join(cwd, 'static', '3rdpartylicenses.txt'))
+        await copyFile(join(cwd, 'view', 'dist', 'view', 'en', '3rdpartylicenses.txt'), join(cwd, 'static', 'public', '3rdpartylicenses.txt'))
 
         await this._buildStatic(cwd)
         await this._buildDocument(cwd)
