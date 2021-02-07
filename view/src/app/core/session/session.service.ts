@@ -4,10 +4,11 @@ import { TouristService, loadToken, RefreshResponse, Response, generateHeader } 
 import { Completer } from '../utils/completer';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ServerAPI } from '../core/api';
-import { removeItem, setItem } from "../utils/local-storage";
+import { removeItem, setItem, expired } from "../utils/local-storage";
 import { getUnix, md5String } from '../utils/utils';
 import { map } from 'rxjs/operators';
 import { Manager, Token } from './manager';
+import { NetError } from '../core/restful';
 
 const AccessKey = 'token.session.access'
 const RefreshKey = 'token.session.refresh'
@@ -76,18 +77,26 @@ export class SessionService {
     let session: Session | undefined
     try {
       if (access) {
+        this.remember_ = true
         console.log(`restore session access token :`, access)
         if (refresh) {
           console.log(`restore session refresh token :`, refresh)
         }
         session = new Session(access, refresh)
       } else if (refresh) {
+        this.remember_ = true
         console.log(`restore session refresh token :`, refresh)
         const access = await this._refresh(refresh)
         console.log(`refresh session access token :`, access)
         session = new Session(access, refresh)
       }
     } catch (e) {
+      if (e instanceof NetError
+        && e.status === 401
+        && refresh
+      ) {
+        expired(RefreshKey, refresh.token)
+      }
       console.error(`restore session token error : `, e)
     } finally {
       this.ready_.resolve()
@@ -135,16 +144,29 @@ export class SessionService {
     return promise
   }
   private async _refreshAccess(accessToken: string, refresh: Token): Promise<Token> {
-    const access = await this._refresh(refresh)
-    const session = this.subject_.value
-    if (!session || session.access?.token != accessToken || session.refresh?.token != refresh.token) {
-      throw new Error("refresh expired")
+    try {
+      const access = await this._refresh(refresh)
+      const session = this.subject_.value
+      if (!session || session.access?.token != accessToken || session.refresh?.token != refresh.token) {
+        throw new Error("refresh expired")
+      }
+      this._nextSession(new Session(access, refresh))
+      if (this.remember_ && access.seconds > 60) {
+        setItem(AccessKey, access.token)
+      }
+      return access
+    } catch (e) {
+      const session = this.subject_.value
+      if (refresh.token === session?.refresh?.token
+        && e instanceof NetError
+        && e.status === 401
+        && this.remember_
+      ) {
+        expired(RefreshKey, refresh.token)
+        this._nextSession(new Session(session.access, undefined))
+      }
+      throw e
     }
-    this._nextSession(new Session(access, refresh))
-    if (this.remember_ && access.seconds > 60) {
-      setItem(AccessKey, access.token)
-    }
-    return access
   }
   private readonly signining_ = new BehaviorSubject<boolean>(false)
   get signining(): Observable<boolean> {

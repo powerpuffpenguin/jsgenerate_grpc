@@ -45,6 +45,12 @@ class Bridge {
         }
     }
 }
+export function expired(key: string, value: string) {
+    const instance = Bridge.instance
+    if (instance.getItem(key) === value) {
+        instance.removeItem(key)
+    }
+}
 export function getItem(key: string, def?: string): string | null {
     const result = Bridge.instance.getItem(key)
     if (typeof def === "string" && result === null) {

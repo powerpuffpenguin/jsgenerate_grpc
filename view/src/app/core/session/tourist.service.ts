@@ -1,10 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ServerAPI } from '../core/api';
-import { getItem, setItem } from "../utils/local-storage";
+import { getItem, setItem, expired } from "../utils/local-storage";
 import { Completer } from '../utils/completer';
 import { getUnix, getUUID, md5String } from '../utils/utils';
 import { Token } from './manager';
+import { NetError } from '../core/restful';
 
 const AccessKey = 'token.tourist.access'
 const RefreshKey = 'token.tourist.refresh'
@@ -82,12 +83,12 @@ export class TouristService {
   private async _refreshAccess(): Promise<Token> {
     if (this.refresh_ && this.refresh_.seconds < 60 * 5) {
       // request refresh token
+      const token = this.refresh_
       try {
-        const tokent = this.refresh_
         const response = await ServerAPI.v1.features.sessions.post<RefreshResponse>(this.httpClient,
           undefined,
           {
-            headers: generateHeader(getUnix(), tokent.data.salt, tokent.token),
+            headers: generateHeader(getUnix(), token.data.salt, token.token),
           },
           'refresh',
         ).toPromise()
@@ -97,7 +98,14 @@ export class TouristService {
         }
         return access
       } catch (e) {
-        throw e
+        if (token.token === this.refresh_?.token &&
+          e instanceof NetError &&
+          e.status === 401
+        ) {
+          // refresh token expired
+          this.refresh_ = undefined
+          expired(RefreshKey, token.token)
+        }
       }
     }
     // request new token

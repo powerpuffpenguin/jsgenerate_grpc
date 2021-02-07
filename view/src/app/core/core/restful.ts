@@ -1,40 +1,86 @@
 import { HttpHeaders, HttpParams, HttpClient, HttpUrlEncodingCodec } from '@angular/common/http';
 import { Observable } from 'rxjs';
-export function resolveError(e: any): string {
+export class NetError {
+    constructor(
+        public readonly status: number, // http status code
+        public readonly grpc: number,// grpc code
+        public readonly message: string, // string message
+    ) {
+
+
+    }
+    private str_: string | undefined
+    toString(): string {
+        if (typeof this.str_ !== "string") {
+            const result = new Array<string>()
+            if (typeof this.status === "number") {
+                result.push(`http=${this.status}`)
+            }
+            if (typeof this.grpc === "number" && this.grpc != 2) {
+                result.push(`grpc=${this.grpc}`)
+            }
+            if (typeof this.message === "string" && this.message.length > 0) {
+                if (result.length != 0) {
+                    result.push(`msg=${this.message}`)
+                }
+            }
+            this.str_ = result.join(',')
+        }
+        return this.str_
+    }
+}
+interface Err {
+    status: number
+    statusText: string
+    message?: string
+    error?: string | {
+        code?: number
+        message?: string
+        description?: string
+        error?: {
+            message?: string
+        }
+    }
+}
+export function resolveError(e: any): NetError {
     console.warn(e)
     if (!e) {
-        return "nil"
+        return new NetError(200, 0, 'success')
     }
     if (typeof e === "string") {
-        return e
+        return new NetError(500, 2, e)
     }
     if (e !== null && typeof e === 'object' && typeof e.status === "number") {
         return resolveHttpError(e)
     }
-    return e
+    return new NetError(500, 2, e.toString())
 }
-export function resolveHttpError(e: any) {
+export function resolveHttpError(e: Err): NetError {
     let error = e.error
     const status = e.status
-    if (typeof e.error === "string") {
-        return `${status} ${error}`
+    let grpc = 2
+    if (typeof error === "string") {
+        return new NetError(status, grpc, error)
     }
     if (error) {
-        if (error.message) {
-            return error.message
-        } else if (error.description) {
-            return `${status} ${error.description}`
+        if (typeof error.message === "string") {
+            if (typeof error.code === "number") {
+                grpc = error.code
+            }
+            return new NetError(status, grpc, error.message)
+        } else if (typeof error.description === "string") {
+            return new NetError(status, grpc, error.description)
         } else if (error.error) {
             error = error.error
-            if (error.message) {
-                return `${status} ${error.message}`
+            if (typeof error.message === "string") {
+                return new NetError(status, grpc, error.message)
             }
-            return `${status} ${error}`
+            return new NetError(status, grpc, error.toString())
         }
     } else if (e.message) {
-        return `${status} ${e.message}`
+        return new NetError(status, grpc, e.message)
     }
-    return `${status} ${e.statusText}`
+    return new NetError(status, grpc, e.statusText)
 }
 function wrapObservable<T>() {
     return (source: Observable<T>) => {

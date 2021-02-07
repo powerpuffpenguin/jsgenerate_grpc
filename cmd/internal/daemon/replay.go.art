@@ -180,6 +180,7 @@ func (r *replay) checkSignature(unix, nonce, signature, salt string) (e error) {
 func (r *replay) getSalt(ctx context.Context) (salt string, e error) {
 	session, e := jwt.FromContext(ctx)
 	if e != nil {
+		e = status.Error(codes.Unauthenticated, e.Error())
 		return
 	}
 	if session == nil || session.Salt == `` {
