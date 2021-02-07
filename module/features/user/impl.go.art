@@ -1,0 +1,30 @@
+package user
+
+import (
+	"context"
+
+	"{{pkg}}/module/features/user/internal/db"
+	grpc_user "{{pkg}}/protocol/features/user"
+
+	"{{pkg}}/module"
+)
+
+type _Impl struct {
+	module.Service
+}
+
+var emptyListResponse grpc_user.ListResponse
+
+func (s _Impl) List(ctx context.Context, request *grpc_user.ListRequest) (response *grpc_user.ListResponse, e error) {
+	// TAG := `system Detail`
+	s.ServeMessage(ctx, db.LastModified(), func(nobody bool) error {
+		if nobody {
+			response = &emptyListResponse
+		} else {
+			response = &grpc_user.ListResponse{
+			}
+		}
+		return nil
+	})
+	return
+}

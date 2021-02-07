@@ -43,7 +43,6 @@ local GB = 1024*MB;
 		Data: {	{{if !db}}
 			"features.user": [
 				{
-					"id": 1,
 					"name": "king",
 					"password": "12345678",
 					"authorization": [1],

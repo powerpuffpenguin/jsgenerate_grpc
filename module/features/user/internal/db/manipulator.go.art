@@ -1,0 +1,57 @@
+package db
+
+import (
+	{{if !db}}
+	"crypto/md5"
+	"encoding/hex"
+	"encoding/json"
+	"{{pkg}}/utils"
+	"strings"
+	"sync"{{/if}}
+)
+
+{{if db}}
+{{else}}
+var _management = newManagement()
+
+type _Data struct {
+	ID            int64
+	Name          string
+	Password      string
+	Nickname      string
+	Authorization []int32
+}
+type _Management struct {
+	keys map[string]*_Data
+	sync.RWMutex
+}
+
+func newManagement() *_Management {
+	return &_Management{
+		keys: make(map[string]*_Data),
+	}
+}
+
+func (m *_Management) onReload(data json.RawMessage) (e error) {
+	var items []_Data
+	e = json.Unmarshal(data, &items)
+	if e != nil {
+		return
+	}
+	m.Lock()
+	for i, item := range items {
+		name := strings.ToLower(item.Name)
+		if name == `` ||
+			item.Password == `` ||
+			!utils.MatchName(name) {
+			continue
+		}
+		item.ID = int64(i)
+		b := md5.Sum([]byte(item.Password))
+		item.Password = hex.EncodeToString(b[:])
+		m.keys[name] = &item
+	}
+	m.Unlock()
+	return
+}
+{{/if}}

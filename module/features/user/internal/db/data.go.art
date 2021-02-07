@@ -1,0 +1,37 @@
+package db
+
+import (
+	grpc_user "{{pkg}}/protocol/features/user"
+)
+
+const (
+	tableName = `user`
+
+	colID            = `id`
+	colName          = `name`
+	colNickname      = `nickname`
+	colAuthorization = `authorization`
+)
+
+// Data .
+type Data struct {
+	ID            int64   `xorm:"pk autoincr 'id'"`
+	Name          string  `xorm:"'name'"`
+	Nickname      string  `xorm:"'nickname'"`
+	Authorization []int32 `xorm:"'authorization'"`
+}
+
+// TableName .
+func (Data) TableName() string {
+	return tableName
+}
+
+// ToPB .
+func (d *Data) ToPB() *grpc_user.Data {
+	return &grpc_user.Data{
+		Id:            d.ID,
+		Name:          d.Name,
+		Nickname:      d.Nickname,
+		Authorization: d.Authorization,
+	}
+}

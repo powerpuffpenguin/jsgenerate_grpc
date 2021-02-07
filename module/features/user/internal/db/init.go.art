@@ -1,0 +1,75 @@
+package db
+
+import (
+	"context"
+	"crypto/md5"
+	"encoding/hex"
+	"encoding/json"
+	"{{pkg}}/db/jwt"
+	"{{pkg}}/db/manipulator"
+	"{{pkg}}/db/signals"
+    "{{pkg}}/utils"{{if !db}}
+    "strings"{{/if}}
+    "time"
+)
+
+var modtimeHelper = manipulator.NewModtimeHelper(manipulator.ModtimeUser, true, false)
+
+// LastModified .
+func LastModified() (modtime time.Time) {
+	modtime, _ = modtimeHelper.LastModified()
+	return
+}
+
+// OnStart .
+func OnStart(data json.RawMessage) (e error) {
+	e = modtimeHelper.Init(time.Now().Unix(), ``, `features.user`)
+	if e != nil {
+		return
+	}{{if !db}}
+	e = _management.onReload(data)
+	if e != nil {
+		return
+	}{{/if}}
+
+	signal := signals.Default()
+	signal.Session.ConnectPost(login)
+	signal.Session.ConnectPassword(password)
+	return
+}
+
+// OnReload .
+func OnReload(data json.RawMessage) (e error) {
+	{{if !db}}
+	e = _management.onReload(data)
+	if e != nil {
+		return
+	}{{/if}}
+    return
+}
+func login(ctx context.Context, name, password, salt string) (session *jwt.Session, e error) {
+{{if db}}
+{{else}}
+	_management.RLock()
+	data, ok := _management.keys[strings.ToLower(name)]
+	_management.RUnlock()
+	if !ok {
+		return
+	}
+	b := md5.Sum([]byte(data.Password + salt))
+	if password == hex.EncodeToString(b[:]) {
+		session = &jwt.Session{
+			ID:            data.ID,
+			Name:          data.Name,
+			Nickname:      data.Nickname,
+			Authorization: data.Authorization,
+			Salt:          utils.NewSalt(),
+			Access:        true,
+		}
+	}
+{{/if}}
+	return
+}
+func password(ctx context.Context, id int64, old, password, salt string) (changed bool, e error) {
+	return
+}

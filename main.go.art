@@ -9,6 +9,7 @@ import ({{if gin}}
 {{/if}}
 	_ "{{pkg}}/module/features/session"
 	_ "{{pkg}}/module/features/system"
+	_ "{{pkg}}/module/features/user"
 	"{{pkg}}/cmd"
 	"log"
 {{if db}}

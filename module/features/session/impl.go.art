@@ -14,6 +14,7 @@ import (
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 )
 
 type _Impl struct {
@@ -58,7 +59,19 @@ func (s _Impl) Signin(ctx context.Context, request *grpc_session.SigninRequest) 
 		return
 	}
 
-	session, e = signals.Default().Session.EmitPost(ctx, request.Name, request.Password, session.Salt)
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		e = s.Error(codes.InvalidArgument, `header unix not exists`)
+		return
+	}
+	strs := md.Get(`unix`)
+	if len(strs) == 0 {
+		e = s.Error(codes.InvalidArgument, `header unix not exists`)
+		return
+	}
+	salt := session.Salt + strs[0]
+	
+	session, e = signals.Default().Session.EmitPost(ctx, request.Name, request.Password, salt)
 	if e != nil {
 		if ce := logger.Logger.Check(zap.WarnLevel, TAG); ce != nil {
 			ce.Write(
