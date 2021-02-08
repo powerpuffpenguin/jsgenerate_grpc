@@ -57,6 +57,8 @@ export class VersionComponent implements OnInit, OnDestroy {
       ).subscribe((response) => {
         this.response = response
         this.startAt = moment.unix(response.startAt)
+        const d = moment.duration(moment.unix(moment.now() / 1000).diff(this.startAt))
+        this.started = durationString(d)
       }, (e) => {
         this.toasterService.pop('error',
           undefined,

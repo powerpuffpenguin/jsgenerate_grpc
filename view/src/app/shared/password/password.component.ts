@@ -13,7 +13,7 @@ import { finalize, takeUntil } from 'rxjs/operators';
   styleUrls: ['./password.component.scss']
 })
 export class PasswordComponent implements OnInit, OnDestroy {
-  disabled = true
+  disabled = false
   old = ''
   val = ''
   private closed_ = new Closed()

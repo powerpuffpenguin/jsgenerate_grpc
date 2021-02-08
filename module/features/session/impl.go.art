@@ -139,7 +139,7 @@ func (s _Impl) Password(ctx context.Context, request *grpc_session.PasswordReque
 		return
 	}
 
-	changed, e := signals.Default().Session.EmitPassword(ctx, session.ID, request.Old, request.Value, session.Salt)
+	changed, e := signals.Default().Session.EmitPassword(ctx, session.ID, request.Old, request.Value)
 	if e != nil {
 		return
 	} else if !changed {

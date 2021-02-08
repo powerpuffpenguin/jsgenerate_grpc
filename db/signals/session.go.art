@@ -31,7 +31,7 @@ func (s *Session) EmitPost(ctx context.Context, name, password, salt string) (se
 	md := s.pool.Get()
 	md.Set(`name`, name)
 	md.Set(`password`, password)
-	md.Set(`salt`, password)
+	md.Set(`salt`, salt)
 	e = s.Signals.Emit(metadata.NewContext(ctx, md), SessionPost)
 	if e == nil {
 		if result, ok := md.Get(`result`); ok {
@@ -74,14 +74,13 @@ func (s slotSessionPost) OnSignal(ctx context.Context) error {
 }
 
 // EmitPassword change password
-func (s *Session) EmitPassword(ctx context.Context, id int64, old, password, salt string) (changed bool, e error) {
+func (s *Session) EmitPassword(ctx context.Context, id int64, old, password string) (changed bool, e error) {
 	s.locker.Lock()
 
 	md := s.pool.Get()
 	md.Set(`id`, id)
 	md.Set(`old`, old)
 	md.Set(`password`, password)
-	md.Set(`salt`, salt)
 	e = s.Signals.Emit(metadata.NewContext(ctx, md), SessionPassword)
 	if e == nil {
 		if result, ok := md.Get(`result`); ok {
@@ -97,7 +96,7 @@ func (s *Session) EmitPassword(ctx context.Context, id int64, old, password, sal
 }
 
 // ConnectPassword change password
-func (s *Session) ConnectPassword(f func(ctx context.Context, id int64, old, password, salt string) (changed bool, e error)) *signals.Connection {
+func (s *Session) ConnectPassword(f func(ctx context.Context, id int64, old, password string) (changed bool, e error)) *signals.Connection {
 	s.locker.Lock()
 	slot := slotSessionPasword{
 		f: f,
@@ -108,7 +107,7 @@ func (s *Session) ConnectPassword(f func(ctx context.Context, id int64, old, pas
 }
 
 type slotSessionPasword struct {
-	f func(ctx context.Context, id int64, old, password, salt string) (changed bool, e error)
+	f func(ctx context.Context, id int64, old, password string) (changed bool, e error)
 }
 
 func (s slotSessionPasword) OnSignal(ctx context.Context) error {
@@ -116,8 +115,7 @@ func (s slotSessionPasword) OnSignal(ctx context.Context) error {
 	id := md.Assert(`id`).(int64)
 	old := md.Assert(`old`).(string)
 	password := md.Assert(`password`).(string)
-	salt := md.Assert(`salt`).(string)
-	changed, e := s.f(ctx, id, old, password, salt)
+	changed, e := s.f(ctx, id, old, password)
 	if e == nil && changed {
 		md.Set(`result`, changed)
 	}
