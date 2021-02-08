@@ -1,0 +1,94 @@
+package system
+
+import (
+	"context"
+	"encoding/json"
+
+	"{{pkg}}/logger"
+	"{{pkg}}/management"
+
+	grpc_logger "{{pkg}}/protocol/features/logger"
+{{if gateway}}
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"{{/if}}
+	"go.uber.org/zap"
+
+	"google.golang.org/grpc"
+)
+
+// ModuleID module unique name
+const ModuleID = `features.logger`
+func init() {
+	// register module
+	management.DefaultManagement().Register(&_Module{})
+}
+
+// _Module impl management.Module
+type _Module struct {
+}
+
+// ID return module unique name
+func (m *_Module) ID() string {
+	return ModuleID
+}
+
+// RegisterGRPC register grpc service
+func (m *_Module) RegisterGRPC(srv *grpc.Server, middleware *management.Middleware) error {
+	// register grpc service
+	var impl _Impl
+	grpc_logger.RegisterServiceServer(srv, impl)
+
+	// register middleware
+	helper := middleware.Module(ModuleID)
+
+	helper.ModuleUnary(
+		impl.UnaryInterceptorCheckRoot,
+	).ModuleStream(
+		impl.StreamInterceptorCheckRoot,
+	)
+	
+	return nil
+}{{if gateway}}
+// RegisterGateway  register grpc-gateway service
+func (m *_Module) RegisterGateway(mux *runtime.ServeMux, clientConn *grpc.ClientConn) error {
+	return grpc_logger.RegisterServiceHandler(context.Background(), mux, clientConn)
+}{{/if}}
+
+// OnStart .
+func (_Module) OnStart(basePath string, data json.RawMessage) {
+	logger.Logger.Info("OnStart",
+		zap.String("module", ModuleID),
+	)
+}
+
+// OnReload .
+func (_Module) OnReload(basePath string, data json.RawMessage, tag string) (e error) {
+	logger.Logger.Info("OnReload",
+		zap.String("module", ModuleID),
+	)
+	return
+}
+
+// OnStop .
+func (_Module) OnStop() {
+	logger.Logger.Info("OnStop",
+		zap.String("module", ModuleID),
+	)
+}
+
+// OnClearDBCache .
+func (_Module) OnClearDBCache(tag string) error {
+	logger.Logger.Info("OnClearDBCache",
+		zap.String("module", ModuleID),
+		zap.String("tag", tag),
+	)
+	return nil
+}
+
+// OnClearCache .
+func (_Module) OnClearCache(tag string) error {
+	logger.Logger.Info("OnClearCache",
+		zap.String("module", ModuleID),
+		zap.String("tag", tag),
+	)
+	return nil
+}

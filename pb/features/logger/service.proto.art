@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package {{grpcPrefix}}.features.logger;
+option go_package = "{{pkg}}/protocol/features/logger";
+
+{{if gateway}}
+import "google/api/annotations.proto";
+{{/if}}
+import "google/api/httpbody.proto";
+
+service Service {
+    // Level return loggers level
+    rpc Level (LevelRequest) returns (LevelResponse){{if gateway}}{
+        option (google.api.http) = {
+            get: "/api/v1/features/loggers/level"
+        };
+    }{{else}};{{/if}}
+    // SetLevel set logger level
+    rpc SetLevel (SetLevelRequest) returns (SetLevelResponse){{if gateway}}{
+        option (google.api.http) = {
+            patch: "/api/v1/features/loggers/level"
+            body: "*"
+        };
+    }{{else}};{{/if}}
+    // Attach console logger stdout {{if gin}}
+    // websocket /api/v1/features/loggers/atach/websocket{{/if}}
+    rpc Atach (AttachRequest) returns (stream AttachResponse);
+    // List return log files name
+    rpc List (ListRequest) returns (ListResponse){{if gateway}}{
+        option (google.api.http) = {
+            get: "/api/v1/features/loggers"
+        };
+    }{{else}};{{/if}}
+    // Download log file
+    rpc Download (DownloadRequest) returns (stream google.api.HttpBody){{if gateway}}{
+        option (google.api.http) = {
+            get: "/api/v1/features/loggers/download/{name}"
+        };
+    }{{else}};{{/if}}
+}
+
+message LevelRequest{
+}
+message LevelResponse{
+    string file = 1;
+    string console = 2;
+}
+message SetLevelRequest{
+    // 'file' or 'console'
+    string tag = 1;
+    // debug info warn error dpanic panic fatal
+    string level = 2;
+}
+message SetLevelResponse{
+}
+message AttachRequest{
+}
+message AttachResponse{
+    bytes data = 1;
+}
+message ListRequest{
+}
+message ListResponse{
+    repeated string names =1;
+}
+message DownloadRequest{
+    string name =1;
+}

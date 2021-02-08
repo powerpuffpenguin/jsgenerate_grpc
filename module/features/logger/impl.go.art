@@ -1,0 +1,57 @@
+package system
+
+import (
+	"context"
+
+	"{{pkg}}/logger"
+	grpc_logger "{{pkg}}/protocol/features/logger"
+
+	"{{pkg}}/module"
+
+	"go.uber.org/zap"
+)
+
+type _Impl struct {
+	module.Service
+}
+
+func (s _Impl) Level(ctx context.Context, request *grpc_logger.LevelRequest) (response *grpc_logger.LevelResponse, e error) {
+	TAG := `logger Level`
+
+	file, e := logger.Logger.FileLevel().MarshalText()
+	if e != nil {
+		if ce := logger.Logger.Check(zap.ErrorLevel, TAG); ce != nil {
+			ce.Write()
+		}
+		return
+	}
+	console, e := logger.Logger.ConsoleLevel().MarshalText()
+	if e != nil {
+		if ce := logger.Logger.Check(zap.ErrorLevel, TAG); ce != nil {
+			ce.Write()
+		}
+		return
+	}
+
+	response = &grpc_logger.LevelResponse{
+		File:    string(file),
+		Console: string(console),
+	}
+	return
+}
+func (s _Impl) SetLevel(ctx context.Context, request *grpc_logger.SetLevelRequest) (response *grpc_logger.SetLevelResponse, e error) {
+	// TAG := `logger SetLevel`
+	return
+}
+func (s _Impl) Atach(request *grpc_logger.AttachRequest, stream grpc_logger.Service_AtachServer) (e error) {
+	// TAG := `logger Atach`
+	return
+}
+func (s _Impl) List(ctx context.Context, request *grpc_logger.ListRequest) (response *grpc_logger.ListResponse, e error) {
+	// TAG := `logger List`
+	return
+}
+func (s _Impl) Download(request *grpc_logger.DownloadRequest, stream grpc_logger.Service_DownloadServer) (e error) {
+	// TAG := `logger Download`
+	return
+}

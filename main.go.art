@@ -10,6 +10,7 @@ import ({{if gin}}
 	_ "{{pkg}}/module/features/session"
 	_ "{{pkg}}/module/features/system"
 	_ "{{pkg}}/module/features/user"
+	_ "{{pkg}}/module/features/logger"
 	"{{pkg}}/cmd"
 	"log"
 {{if db}}

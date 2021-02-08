@@ -37,6 +37,7 @@ local GB = 1024*MB;
 		Enable: [
 			"features.session",
 			"features.user",
+			"features.logger",
 			"features.system",
 		],
 		// module configure
