@@ -92,10 +92,10 @@ export function jsgenerate(context: Context) {
     getUUID(context).then((uuid) => {
         const md = new Metadata(context.pkg, context.name, context.tag, uuid)
         const prefix = [
-            '.git' + sep,
+            '.git' + sep, 'document' + sep,
             join('view', 'node_modules'),
         ]
-        const exclude = ['.git']
+        const exclude = ['.git', 'document']
         if (!md.db) {
             exclude.push(join('configure', 'db.go'))
         }
@@ -122,9 +122,10 @@ export function jsgenerate(context: Context) {
         ).rename(
             `${md.project}.jsonnet`, `example.jsonnet`, `bin`
         )
+        const readme = join(__dirname, '..', '..', 'README.md')
         context.serve(
             async function (name, src, stat): Promise<undefined> {
-                if (nameService.checkExclude(name)) {
+                if (src === readme || nameService.checkExclude(name)) {
                     return
                 }
                 const filename = nameService.getOutput(name)

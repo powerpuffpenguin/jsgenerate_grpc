@@ -1,4 +1,4 @@
 # {{project}}
 
-* generate by [https://gitlab.com/king011_js/jsgenerate](https://gitlab.com/king011_js/jsgenerate) at {{@date}}
-* template from [https://gitlab.com/king011_js/jsgenerate_grpc](https://gitlab.com/king011_js/jsgenerate_grpc)
+* generate by [https://github.com/powerpuffpenguin/jsgenerate](https://github.com/powerpuffpenguin/jsgenerate) at {{@date}}
+* template from [https://github.com/powerpuffpenguin/jsgenerate_grpc](https://github.com/powerpuffpenguin/jsgenerate_grpc)

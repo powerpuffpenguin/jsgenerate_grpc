@@ -96,10 +96,10 @@ function jsgenerate(context) {
     getUUID(context).then((uuid) => {
         const md = new Metadata(context.pkg, context.name, context.tag, uuid);
         const prefix = [
-            '.git' + path_1.sep,
+            '.git' + path_1.sep, 'document' + path_1.sep,
             path_1.join('view', 'node_modules'),
         ];
-        const exclude = ['.git'];
+        const exclude = ['.git', 'document'];
         if (!md.db) {
             exclude.push(path_1.join('configure', 'db.go'));
         }
@@ -118,8 +118,9 @@ function jsgenerate(context) {
             exclude.push('view');
         }
         const nameService = new helper_1.NameService(context.output, uuid, new helper_1.Exclude(prefix, [], exclude)).rename(`${md.project}.jsonnet`, `example.jsonnet`, `bin`);
+        const readme = path_1.join(__dirname, '..', '..', 'README.md');
         context.serve(async function (name, src, stat) {
-            if (nameService.checkExclude(name)) {
+            if (src === readme || nameService.checkExclude(name)) {
                 return;
             }
             const filename = nameService.getOutput(name);
