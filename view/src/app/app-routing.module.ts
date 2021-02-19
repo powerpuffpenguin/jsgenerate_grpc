@@ -1,8 +1,13 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
+import { HomeComponent } from './app/home/home.component';
 import { RootGuard } from './core/guard/root.guard';
 
 const routes: Routes = [
+  {
+    path: '',
+    component: HomeComponent,
+  },
   {
     path: 'dev',
     loadChildren: () => import('./dev/dev.module').then(m => m.DevModule),

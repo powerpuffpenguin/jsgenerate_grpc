@@ -11,10 +11,12 @@ import { SharedModule } from "./shared/shared.module";
 
 import { AppComponent } from './app.component';
 import { HeaderInterceptor } from './core/interceptor/header.service';
+import { HomeComponent } from './app/home/home.component';
 
 @NgModule({
   declarations: [
     AppComponent,
+    HomeComponent,
   ],
   imports: [
     BrowserModule, BrowserAnimationsModule, FormsModule,
