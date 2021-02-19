@@ -1,0 +1,9 @@
+package db
+
+import "{{pkg}}/configure"
+
+// OnStart .
+func OnStart() (e error) {
+	defaultFilesystem.onStart(configure.DefaultConfigure().Logger.Filename)
+	return
+}

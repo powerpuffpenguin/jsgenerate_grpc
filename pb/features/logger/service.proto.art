@@ -18,7 +18,7 @@ service Service {
     // SetLevel set logger level
     rpc SetLevel (SetLevelRequest) returns (SetLevelResponse){{if gateway}}{
         option (google.api.http) = {
-            patch: "/api/v1/features/loggers/level"
+            post: "/api/v1/features/loggers/level"
             body: "*"
         };
     }{{else}};{{/if}}

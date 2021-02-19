@@ -2,13 +2,17 @@ package system
 
 import (
 	"context"
+	"os"
 
 	"{{pkg}}/logger"
+	"{{pkg}}/module/features/logger/internal/db"
 	grpc_logger "{{pkg}}/protocol/features/logger"
 
 	"{{pkg}}/module"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"google.golang.org/grpc/codes"
 )
 
 type _Impl struct {
@@ -40,18 +44,164 @@ func (s _Impl) Level(ctx context.Context, request *grpc_logger.LevelRequest) (re
 	return
 }
 func (s _Impl) SetLevel(ctx context.Context, request *grpc_logger.SetLevelRequest) (response *grpc_logger.SetLevelResponse, e error) {
-	// TAG := `logger SetLevel`
+		TAG := `logger SetLevel`
+	var (
+		at    zap.AtomicLevel
+		level zapcore.Level
+	)
+	switch request.Level {
+	case "debug":
+		level = zap.DebugLevel
+	case "info":
+		level = zap.InfoLevel
+	case "warn":
+		level = zap.WarnLevel
+	case "error":
+		level = zap.ErrorLevel
+	case "dpanic":
+		level = zap.DPanicLevel
+	case "panic":
+		level = zap.PanicLevel
+	case "fatal":
+		level = zap.FatalLevel
+	default:
+		e = s.Error(codes.InvalidArgument, `not support level`)
+	}
+	if e != nil {
+		if ce := logger.Logger.Check(zap.WarnLevel, TAG); ce != nil {
+			ce.Write(
+				zap.String(`tag`, request.Tag),
+				zap.String(`level`, request.Level),
+			)
+		}
+		return
+	}
+
+	switch request.Tag {
+	case "file":
+		at = logger.Logger.FileLevel()
+	case "console":
+		at = logger.Logger.ConsoleLevel()
+	default:
+		e = s.Error(codes.InvalidArgument, `not support tag`)
+	}
+	if e != nil {
+		if ce := logger.Logger.Check(zap.WarnLevel, TAG); ce != nil {
+			ce.Write(
+				zap.String(`tag`, request.Tag),
+				zap.String(`level`, request.Level),
+			)
+		}
+		return
+	}
+	at.SetLevel(level)
+
+	response = &grpc_logger.SetLevelResponse{}
+	if ce := logger.Logger.Check(zap.InfoLevel, TAG); ce != nil {
+		ce.Write(
+			zap.String(`tag`, request.Tag),
+			zap.String(`level`, request.Level),
+		)
+	}
 	return
 }
 func (s _Impl) Atach(request *grpc_logger.AttachRequest, stream grpc_logger.Service_AtachServer) (e error) {
 	// TAG := `logger Atach`
+	ctx := stream.Context()
+
+	done := ctx.Done()
+	listener := logger.NewSnapshotListener(done)
+	logger.AddListener(listener)
+	var (
+		working = true
+		ch      = listener.Channel()
+		data    []byte
+		respose grpc_logger.AttachResponse
+	)
+	for working {
+		select {
+		case <-done:
+			working = false
+			e = ctx.Err()
+		case data = <-ch:
+			if len(data) > 0 {
+				respose.Data = data
+				e = stream.Send(&respose)
+				if e != nil {
+					working = false
+				}
+			}
+		}
+	}
+	logger.RemoveListener(listener)
 	return
 }
+var emptyListResponse grpc_logger.ListResponse
+
 func (s _Impl) List(ctx context.Context, request *grpc_logger.ListRequest) (response *grpc_logger.ListResponse, e error) {
 	// TAG := `logger List`
+	filesystem := db.DefaultFilesystem()
+	stat, e := filesystem.Stat()
+	if e != nil {
+		return
+	}
+	modtime := stat.ModTime()
+	e = s.ServeMessage(ctx, modtime,
+		func(nobody bool) error {
+			if nobody {
+				response = &emptyListResponse
+				return nil
+			}
+			names, e := filesystem.List()
+			if e != nil {
+				return e
+			}
+			if len(names) == 0 {
+				response = &emptyListResponse
+			} else {
+				response = &grpc_logger.ListResponse{
+					Names: names,
+				}
+			}
+			return nil
+		},
+	)
+	if e == nil {
+		s.SetHTTPCacheMaxAge(ctx, 60)
+	}
 	return
 }
 func (s _Impl) Download(request *grpc_logger.DownloadRequest, stream grpc_logger.Service_DownloadServer) (e error) {
 	// TAG := `logger Download`
+	if request.Name == `` {
+		e = s.Error(codes.InvalidArgument, `name not supported empty`)
+		return
+	}
+	ctx := stream.Context()
+	// open file
+	filename, allowed := db.DefaultFilesystem().Get(request.Name)
+	if !allowed {
+		e = s.Error(codes.InvalidArgument, `Illegal name`)
+		return
+	}
+	f, e := os.Open(filename)
+	if e != nil {
+		e = s.ToHTTPError(ctx, request.Name, e)
+		return
+	}
+	defer f.Close()
+	stat, e := f.Stat()
+	if e != nil {
+		return
+	}
+	modtime := stat.ModTime()
+	e = s.ServeContent(stream,
+		`application/octet-stream`,
+		modtime,
+		f,
+	)
+	if e == nil {
+		s.SetHTTPCacheMaxAge(ctx, 60)
+	}
 	return
 }

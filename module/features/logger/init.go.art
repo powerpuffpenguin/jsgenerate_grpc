@@ -6,6 +6,8 @@ import (
 
 	"{{pkg}}/logger"
 	"{{pkg}}/management"
+	"{{pkg}}/module/features/logger/internal/db"
+	"os"
 
 	grpc_logger "{{pkg}}/protocol/features/logger"
 {{if gateway}}
@@ -55,9 +57,17 @@ func (m *_Module) RegisterGateway(mux *runtime.ServeMux, clientConn *grpc.Client
 
 // OnStart .
 func (_Module) OnStart(basePath string, data json.RawMessage) {
-	logger.Logger.Info("OnStart",
-		zap.String("module", ModuleID),
-	)
+	e := db.OnStart()
+	if e == nil {
+		logger.Logger.Info("OnStart",
+			zap.String("module", ModuleID),
+		)
+	} else {
+		logger.Logger.Fatal("OnStart",
+			zap.String("module", ModuleID),
+		)
+		os.Exit(1)
+	}
 }
 
 // OnReload .
