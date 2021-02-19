@@ -3,7 +3,6 @@ package signals
 import (
 	"context"
 	"{{pkg}}/db/jwt"
-	"sync"
 
 	"gitlab.com/king011_go/signals"
 	"gitlab.com/king011_go/signals/metadata"
@@ -20,14 +19,11 @@ const (
 type Session struct {
 	noCopy noCopy
 	signals.Signals
-	locker sync.Mutex
-	pool   pool
+	pool pool
 }
 
 // EmitPost sign in
 func (s *Session) EmitPost(ctx context.Context, name, password, salt string) (session *jwt.Session, e error) {
-	s.locker.Lock()
-
 	md := s.pool.Get()
 	md.Set(`name`, name)
 	md.Set(`password`, password)
@@ -41,19 +37,15 @@ func (s *Session) EmitPost(ctx context.Context, name, password, salt string) (se
 		}
 	}
 	s.pool.Put(md)
-	
-	s.locker.Unlock()
 	return
 }
 
 // ConnectPost sign in
 func (s *Session) ConnectPost(f func(ctx context.Context, name, password, salt string) (session *jwt.Session, e error)) *signals.Connection {
-	s.locker.Lock()
 	slot := slotSessionPost{
 		f: f,
 	}
 	connection := s.Signals.Connect(slot, SessionPost)
-	s.locker.Unlock()
 	return connection
 }
 
@@ -75,8 +67,6 @@ func (s slotSessionPost) OnSignal(ctx context.Context) error {
 
 // EmitPassword change password
 func (s *Session) EmitPassword(ctx context.Context, id int64, old, password string) (changed bool, e error) {
-	s.locker.Lock()
-
 	md := s.pool.Get()
 	md.Set(`id`, id)
 	md.Set(`old`, old)
@@ -90,19 +80,15 @@ func (s *Session) EmitPassword(ctx context.Context, id int64, old, password stri
 		}
 	}
 	s.pool.Put(md)
-	
-	s.locker.Unlock()
 	return
 }
 
 // ConnectPassword change password
 func (s *Session) ConnectPassword(f func(ctx context.Context, id int64, old, password string) (changed bool, e error)) *signals.Connection {
-	s.locker.Lock()
 	slot := slotSessionPasword{
 		f: f,
 	}
 	connection := s.Signals.Connect(slot, SessionPassword)
-	s.locker.Unlock()
 	return connection
 }
 

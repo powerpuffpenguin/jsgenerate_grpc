@@ -23,7 +23,7 @@ export class RootGuard implements CanActivate {
         this.sessionService.observable.pipe(
           first()
         ).subscribe((data) => {
-          if (data && data.access) {
+          if (data?.access) {
             resolve(data.access.root)
           } else {
             resolve(false)

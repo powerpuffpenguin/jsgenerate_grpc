@@ -22,7 +22,7 @@ export class AccessGuard implements CanActivate {
         this.sessionService.observable.pipe(
           first()
         ).subscribe((data) => {
-          if (data && data.access) {
+          if (data?.access) {
             resolve(true)
           } else {
             resolve(false)
