@@ -1,4 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
+@import "xterm/css/xterm.css";
+@import "angular2-toaster/toaster.min.css";
+
 .fill-flex{
     flex: 1 1 auto;
 }

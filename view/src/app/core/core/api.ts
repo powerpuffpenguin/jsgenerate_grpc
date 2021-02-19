@@ -6,6 +6,7 @@ export const ServerAPI = {
         features: {
             sessions: MakeRESTful(root, 'v1', 'features', 'sessions'),
             systems: MakeRESTful(root, 'v1', 'features', 'systems'),
+            loggers: MakeRESTful(root, 'v1', 'features', 'loggers'),
         },
     },
     static: {
