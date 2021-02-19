@@ -27,13 +27,11 @@ export class PasswordComponent implements OnInit, OnDestroy {
   }
   onSave() {
     this.disabled = true
-    ServerAPI.v1.features.sessions.patch(this.httpClient,
+    ServerAPI.v1.features.sessions.child('password').patch(this.httpClient,
       {
         'old': md5String(this.old),
         'value': md5String(this.val),
       },
-      undefined,
-      'password',
     ).pipe(
       takeUntil(this.closed_.observable),
       finalize(() => {

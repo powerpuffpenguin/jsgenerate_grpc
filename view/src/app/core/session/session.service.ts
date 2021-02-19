@@ -107,12 +107,11 @@ export class SessionService {
     }
   }
   private async _refresh(refresh: Token): Promise<Token> {
-    const response = await ServerAPI.v1.features.sessions.post<RefreshResponse>(this.httpClient,
+    const response = await ServerAPI.v1.features.sessions.child('refresh').post<RefreshResponse>(this.httpClient,
       undefined,
       {
         headers: generateHeader(getUnix(), refresh.data.salt, refresh.token),
       },
-      'refresh',
     ).toPromise()
     return new Token(response.access)
   }

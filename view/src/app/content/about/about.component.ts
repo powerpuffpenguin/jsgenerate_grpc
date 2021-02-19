@@ -19,7 +19,7 @@ export class AboutComponent implements OnInit, OnDestroy {
     private readonly toasterService: ToasterService,
   ) { }
   ngOnInit(): void {
-    this.httpClient.get(ServerAPI.static.license, {
+    ServerAPI.static.license.get(this.httpClient, {
       responseType: 'text',
     }).pipe(
       takeUntil(this.closed_.observable),
@@ -31,7 +31,7 @@ export class AboutComponent implements OnInit, OnDestroy {
         e,
       )
     })
-    this.httpClient.get(ServerAPI.static.licenses, {
+    ServerAPI.static.licenses.get(this.httpClient, {
       responseType: 'text',
     }).pipe(
       takeUntil(this.closed_.observable),

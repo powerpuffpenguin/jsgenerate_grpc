@@ -103,13 +103,19 @@ function wrapObservable<T>() {
         })
     }
 }
-export class RESTful {
-    constructor(public readonly root: string, public readonly version: string, public readonly url: string) {
-        this.baseURL_ = `${root}/${version}/${url}`
+export function MakeRESTful(...path: Array<string | number | boolean>): RESTful {
+    let url = ''
+    if (path && path.length > 0) {
+        for (let i = 0; i < path.length; i++) {
+            const codec = new HttpUrlEncodingCodec()
+            path[i] = codec.encodeKey(path[i].toString())
+        }
+        url += '/' + path.join('/')
     }
-    private baseURL_ = ''
-    get baseURL(): string {
-        return this.baseURL_
+    return new RESTful(url)
+}
+export class RESTful {
+    constructor(public readonly baseURL: string) {
     }
     httpURL(...path: Array<string | number | boolean>): string {
         let url = this.baseURL
@@ -145,6 +151,9 @@ export class RESTful {
         }
         return `${addr}${this.httpURL(...path)}`
     }
+    child(...path: Array<string | number | boolean>): RESTful {
+        return new RESTful(this.httpURL(...path))
+    }
     get<T>(client: HttpClient,
         options?: {
             headers?: HttpHeaders | {
@@ -158,7 +167,6 @@ export class RESTful {
             responseType?: 'json';
             withCredentials?: boolean;
         },
-        ...path: Array<string | number | boolean>
     ): Observable<T>;
     get(client: HttpClient,
         options: {
@@ -173,10 +181,9 @@ export class RESTful {
             responseType: 'text';
             withCredentials?: boolean;
         },
-        ...path: Array<string | number | boolean>
     ): Observable<string>;
-    get(client: HttpClient, options?: any, ...path: Array<string | number | boolean>): any {
-        return client.get(this.httpURL(...path), options).pipe(wrapObservable())
+    get(client: HttpClient, options?: any): any {
+        return client.get(this.baseURL, options).pipe(wrapObservable())
     }
     post<T>(client: HttpClient, body: any | null,
         options?: {
@@ -191,9 +198,8 @@ export class RESTful {
             responseType?: 'json';
             withCredentials?: boolean;
         },
-        ...path: Array<string | number | boolean>
     ): Observable<T> {
-        return client.post<T>(this.httpURL(...path), body, options).pipe(wrapObservable())
+        return client.post<T>(this.baseURL, body, options).pipe(wrapObservable())
     }
     delete<T>(client: HttpClient,
         options?: {
@@ -208,9 +214,8 @@ export class RESTful {
             responseType?: 'json';
             withCredentials?: boolean;
         },
-        ...path: Array<string | number | boolean>
     ): Observable<T> {
-        return client.delete<T>(this.httpURL(...path), options).pipe(wrapObservable())
+        return client.delete<T>(this.baseURL, options).pipe(wrapObservable())
     }
     put<T>(client: HttpClient, body: any | null,
         options?: {
@@ -225,9 +230,8 @@ export class RESTful {
             responseType?: 'json';
             withCredentials?: boolean;
         },
-        ...path: Array<string | number | boolean>
     ): Observable<T> {
-        return client.put<T>(this.httpURL(...path), body, options).pipe(wrapObservable())
+        return client.put<T>(this.baseURL, body, options).pipe(wrapObservable())
     }
     patch<T>(client: HttpClient, body: any | null,
         options?: {
@@ -242,8 +246,7 @@ export class RESTful {
             responseType?: 'json';
             withCredentials?: boolean;
         },
-        ...path: Array<string | number | boolean>
     ): Observable<T> {
-        return client.patch<T>(this.httpURL(...path), body, options).pipe(wrapObservable())
+        return client.patch<T>(this.baseURL, body, options).pipe(wrapObservable())
     }
 }

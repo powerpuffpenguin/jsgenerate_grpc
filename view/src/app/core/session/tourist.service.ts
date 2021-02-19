@@ -85,12 +85,11 @@ export class TouristService {
       // request refresh token
       const token = this.refresh_
       try {
-        const response = await ServerAPI.v1.features.sessions.post<RefreshResponse>(this.httpClient,
+        const response = await ServerAPI.v1.features.sessions.child('refresh').post<RefreshResponse>(this.httpClient,
           undefined,
           {
             headers: generateHeader(getUnix(), token.data.salt, token.token),
           },
-          'refresh',
         ).toPromise()
         const access = new Token(response.access)
         if (access.seconds > 60) {
@@ -109,11 +108,10 @@ export class TouristService {
       }
     }
     // request new token
-    const response = await ServerAPI.v1.features.sessions.get<Response>(this.httpClient,
+    const response = await ServerAPI.v1.features.sessions.child('tourist').get<Response>(this.httpClient,
       {
         headers: generateHeader(),
       },
-      'tourist',
     ).toPromise()
     const access = new Token(response.access)
     if (access.seconds > 60 * 5) {

@@ -49,9 +49,7 @@ export class VersionComponent implements OnInit, OnDestroy {
   ) { }
   ngOnInit(): void {
     RequireNet('moment').then((moment) => {
-      ServerAPI.v1.features.systems.get<Response>(this.httpClient,
-        undefined,
-        'detail',
+      ServerAPI.v1.features.systems.child('detail').get<Response>(this.httpClient,
       ).pipe(
         takeUntil(this.closed_.observable),
       ).subscribe((response) => {
