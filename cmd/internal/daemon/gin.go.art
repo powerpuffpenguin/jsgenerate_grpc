@@ -6,8 +6,8 @@ import (
 	"{{pkg}}/configure"
 	"{{pkg}}/web/api"
 	"{{pkg}}/web/static"
-	"{{pkg}}/web/document"
-//	"{{pkg}}/web/view"
+	"{{pkg}}/web/document"{{if view}}
+	"{{pkg}}/web/view"{{/if}}
 	"{{pkg}}/web"
 	"strings"
 
@@ -22,8 +22,8 @@ func newHTTPService() *httpService {
 	router := gin.Default()
 	rs := []web.IHelper{
 		api.Helper{},
-		static.Helper{},
-//		view.Helper{},
+		static.Helper{},{{if view}}
+		view.Helper{},{{/if}}
 	}
 	if configure.DefaultConfigure().HTTP.Document {
 		rs = append(rs, document.Helper{})

@@ -38,7 +38,7 @@ func (h Helper) NegotiateFilesystem(c *gin.Context, fs http.FileSystem, path str
 			h.toHTTPError(c, e)
 			return
 		}
-		if os.IsNotExist(e) {
+		if path != `/index.html` && os.IsNotExist(e) {
 			path = `/index.html`
 			f, e = fs.Open(path)
 		}
