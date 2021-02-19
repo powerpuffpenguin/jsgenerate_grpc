@@ -2,16 +2,12 @@
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
   <file source-language="zh-Hant" datatype="plaintext" original="ng2.template">
     <body>
-      <trans-unit id="e203fbda1a68c2ee0b206d0959f9323d3deac894" datatype="html">
-        <source>About Tooltip</source>
-        <target>關於</target>
+      <trans-unit id="dc4f1686ca7f85e09d50e3c3dfd1b789825ea607" datatype="html">
+        <source>password changed</source>
+        <target>密碼已更改</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.html</context>
           <context context-type="linenumber">29</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/navigation-bar/navigation-bar.component.html</context>
-          <context context-type="linenumber">9</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2fdaddcb75a311e6ac9bb678043398e1588ddf0a" datatype="html">
@@ -52,6 +48,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/navigation-bar/navigation-bar.component.html</context>
           <context context-type="linenumber">6</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="e203fbda1a68c2ee0b206d0959f9323d3deac894" datatype="html">
+        <source>About Tooltip</source>
+        <target>關於</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/navigation-bar/navigation-bar.component.html</context>
+          <context context-type="linenumber">9</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2034b5a6cc6cfeddeeebb2936de216b8e3962d0f" datatype="html">
@@ -122,6 +126,70 @@
           <context context-type="linenumber">11</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="5edf054f14aa57bc25a28cb7db01956fee53dac8" datatype="html">
+        <source>Change Password</source>
+        <target>更改密碼</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/password/password.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4ad47fba753bd89ce442197653ce65004eff1e6d" datatype="html">
+        <source>Old Password</source>
+        <target>原密碼</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/password/password.component.html</context>
+          <context context-type="linenumber">6</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2f41285b5264498e812cd5577b50bfaa0f715009" datatype="html">
+        <source>Password Invalid</source>
+        <target>無效的密碼</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/password/password.component.html</context>
+          <context context-type="linenumber">8</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/password/password.component.html</context>
+          <context context-type="linenumber">13</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
+          <context context-type="linenumber">27</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="c7014c6360e94b236286b869c3fe0ea9911c0387" datatype="html">
+        <source>New Password</source>
+        <target>新密碼</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/password/password.component.html</context>
+          <context context-type="linenumber">11</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="71c77bb8cecdf11ec3eead24dd1ba506573fa9cd" datatype="html">
+        <source>Submit</source>
+        <target>提交</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/password/password.component.html</context>
+          <context context-type="linenumber">18</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
+          <context context-type="linenumber">37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="f4e529ae5ffd73001d1ff4bbdeeb0a72e342e5c8" datatype="html">
+        <source>Close</source>
+        <target>關閉</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/password/password.component.html</context>
+          <context context-type="linenumber">19</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
+          <context context-type="linenumber">38</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="08ade5a54735040b792222377ab8defaf93590df" datatype="html">
         <source>Welcome <x id="INTERPOLATION" equiv-text="{{access?.data?.name}}"/>, you have signed in.</source>
         <target>歡迎 <x id="INTERPOLATION" equiv-text="{{access?.data?.name}}"/>，你已經登入系統。</target>
@@ -146,36 +214,12 @@
           <context context-type="linenumber">17</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="2f41285b5264498e812cd5577b50bfaa0f715009" datatype="html">
-        <source>Password Invalid</source>
-        <target>無效的密碼</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
-          <context context-type="linenumber">27</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="3eb49d60bd859eb2d9d3a6d380cdf4e0b8252333" datatype="html">
         <source>Remember me</source>
         <target>記住登入狀態</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
           <context context-type="linenumber">32</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="71c77bb8cecdf11ec3eead24dd1ba506573fa9cd" datatype="html">
-        <source>Submit</source>
-        <target>提交</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
-          <context context-type="linenumber">37</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="f4e529ae5ffd73001d1ff4bbdeeb0a72e342e5c8" datatype="html">
-        <source>Close</source>
-        <target>關閉</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
-          <context context-type="linenumber">38</context>
         </context-group>
       </trans-unit>
     </body>

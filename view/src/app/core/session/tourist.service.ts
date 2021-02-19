@@ -6,6 +6,7 @@ import { Completer } from '../utils/completer';
 import { getUnix, getUUID, md5String } from '../utils/utils';
 import { Token } from './manager';
 import { NetError } from '../core/restful';
+import { environment } from 'src/environments/environment';
 
 const AccessKey = 'token.tourist.access'
 const RefreshKey = 'token.tourist.refresh'
@@ -42,7 +43,11 @@ export class TouristService {
         const completer = new Completer<Token>()
         completer.resolve(token)
         this.access_ = completer
-        console.log(`load tourist access token`, token)
+        if (environment.production) {
+          console.log(`load tourist access token`)
+        } else {
+          console.log(`load tourist access token`, token)
+        }
       }
     } catch (e) {
       console.warn(`load tourist access token error :`, e)
@@ -51,7 +56,11 @@ export class TouristService {
       const token = loadToken(RefreshKey)
       if (token) {
         this.refresh_ = token
-        console.log(`load tourist refresh token`, token)
+        if (environment.production) {
+          console.log(`load tourist refresh token`)
+        } else {
+          console.log(`load tourist refresh token`, token)
+        }
       }
     } catch (e) {
       console.warn(`load tourist refresh token error :`, e)

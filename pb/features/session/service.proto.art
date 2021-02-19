@@ -32,7 +32,7 @@ service Service {
     // Password change session password
     rpc Password (PasswordRequest) returns (PasswordResponse){{if gateway}}{
         option (google.api.http) = {
-            patch: "/api/v1/features/sessions/password"
+            post: "/api/v1/features/sessions/password"
             body: "*"
         };
     }{{else}};{{/if}}

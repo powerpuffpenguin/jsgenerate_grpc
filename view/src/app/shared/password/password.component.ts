@@ -6,6 +6,7 @@ import { Closed } from 'src/app/core/utils/closed';
 import { ServerAPI } from 'src/app/core/core/api';
 import { md5String } from 'src/app/core/utils/utils';
 import { finalize, takeUntil } from 'rxjs/operators';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({
   selector: 'app-password',
@@ -19,7 +20,9 @@ export class PasswordComponent implements OnInit, OnDestroy {
   private closed_ = new Closed()
   constructor(private httpClient: HttpClient,
     private toasterService: ToasterService,
-    private matDialogRef: MatDialogRef<PasswordComponent>,) { }
+    private matDialogRef: MatDialogRef<PasswordComponent>,
+    private i18nService: I18nService,
+  ) { }
   ngOnInit(): void {
   }
   ngOnDestroy() {
@@ -27,7 +30,7 @@ export class PasswordComponent implements OnInit, OnDestroy {
   }
   onSave() {
     this.disabled = true
-    ServerAPI.v1.features.sessions.child('password').patch(this.httpClient,
+    ServerAPI.v1.features.sessions.child('password').post(this.httpClient,
       {
         'old': md5String(this.old),
         'value': md5String(this.val),
@@ -38,7 +41,7 @@ export class PasswordComponent implements OnInit, OnDestroy {
         this.disabled = false
       })
     ).subscribe(() => {
-      this.toasterService.pop('success', undefined, 'password changed')
+      this.toasterService.pop('success', undefined, this.i18nService.get('password changed'))
     }, (e) => {
       this.toasterService.pop('error', undefined, e)
     })

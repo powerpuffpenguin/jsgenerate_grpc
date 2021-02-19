@@ -1,5 +1,5 @@
-import { RESTful, MakeRESTful } from './restful';
-const root = '/api'
+import { MakeRESTful } from './restful';
+const root = 'api'
 
 export const ServerAPI = {
     v1: {

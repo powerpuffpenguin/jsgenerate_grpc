@@ -9,6 +9,7 @@ import { getUnix, md5String } from '../utils/utils';
 import { map } from 'rxjs/operators';
 import { Manager, Token } from './manager';
 import { NetError } from '../core/restful';
+import { environment } from 'src/environments/environment';
 
 const AccessKey = 'token.session.access'
 const RefreshKey = 'token.session.refresh'
@@ -49,7 +50,11 @@ export class SessionService {
       const token = loadToken(AccessKey)
       if (token) {
         access = token
-        console.log(`load session access token`, token)
+        if (environment.production) {
+          console.log(`load session access token`)
+        } else {
+          console.log(`load session access token`, token)
+        }
       }
     } catch (e) {
       console.warn(`load session access token error :`, e)
@@ -58,7 +63,11 @@ export class SessionService {
       const token = loadToken(RefreshKey)
       if (token) {
         refresh = token
-        console.log(`load session refresh token`, token)
+        if (environment.production) {
+          console.log(`load session refresh token`)
+        } else {
+          console.log(`load session refresh token`, token)
+        }
       }
     } catch (e) {
       console.warn(`load session refresh token error :`, e)
@@ -78,16 +87,32 @@ export class SessionService {
     try {
       if (access) {
         this.remember_ = true
-        console.log(`restore session access token :`, access)
+        if (environment.production) {
+          console.log(`restore session access token`)
+        } else {
+          console.log(`restore session access token`, access)
+        }
         if (refresh) {
-          console.log(`restore session refresh token :`, refresh)
+          if (environment.production) {
+            console.log(`restore session refresh token`)
+          } else {
+            console.log(`restore session refresh token`, refresh)
+          }
         }
         session = new Session(access, refresh)
       } else if (refresh) {
         this.remember_ = true
-        console.log(`restore session refresh token :`, refresh)
+        if (environment.production) {
+          console.log(`restore session refresh token`)
+        } else {
+          console.log(`restore session refresh token`, refresh)
+        }
         const access = await this._refresh(refresh)
-        console.log(`refresh session access token :`, access)
+        if (environment.production) {
+          console.log(`refresh session access token`)
+        } else {
+          console.log(`refresh session access token`, access)
+        }
         session = new Session(access, refresh)
       }
     } catch (e) {
