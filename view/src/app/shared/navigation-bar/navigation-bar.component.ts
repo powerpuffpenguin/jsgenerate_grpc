@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { filter, takeUntil } from 'rxjs/operators';
-import { SettingsService } from 'src/app/core/settings/settings.service';
+import { SettingsService, Theme } from 'src/app/core/settings/settings.service';
 import { Closed } from 'src/app/core/utils/closed';
 import { environment } from 'src/environments/environment';
 import { MatDialog } from '@angular/material/dialog';
@@ -8,7 +8,11 @@ import { SignInComponent } from '../sign-in/sign-in.component';
 import { SessionService } from 'src/app/core/session/session.service';
 import { Token } from 'src/app/core/session/manager';
 import { PasswordComponent } from '../password/password.component';
-const Themes = [
+interface Data {
+  id: Theme,
+  name: string
+}
+const Themes: Array<Data> = [
   {
     id: 'deeppurple-amber',
     name: 'Deep Purple & Amber'
@@ -75,7 +79,7 @@ export class NavigationBarComponent implements OnInit, OnDestroy {
   themeColor(id: string) {
     return id === this.theme ? 'accent' : ''
   }
-  onClickTheme(id: string) {
+  onClickTheme(id: Theme) {
     this.settingsService.nextTheme(id)
   }
   onClickSignin() {

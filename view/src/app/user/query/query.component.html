@@ -1,0 +1,39 @@
+<div class="view">
+    <mat-form-field class="query">
+        <mat-label i18n>Name</mat-label>
+        <input matInput [disabled]="disabled" cdkFocusInitial [(ngModel)]="request.name" name="name">
+    </mat-form-field>
+    <mat-checkbox class="query" [disabled]="disabled" [(ngModel)]="request.nameFuzzy" name="nameFuzzy">fuzzy
+        matching</mat-checkbox>
+    <button mat-stroked-button [disabled]="disabled || isNotQueryChange" (click)="onClickQuery()">Query</button>
+
+    <mat-paginator *ngIf="pageSize>10 && source.length>10" [disabled]="disabled" [length]="length"
+        [pageIndex]="pageIndex" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 100]" (page)="onPage($event)">
+    </mat-paginator>
+
+    <table mat-table [dataSource]="source" class="mat-elevation-z8" *ngIf="source.length>0">
+        <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef>ID</th>
+            <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+        </ng-container>
+        <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+        </ng-container>
+        <ng-container matColumnDef="nickname">
+            <th mat-header-cell *matHeaderCellDef>Nickname</th>
+            <td mat-cell *matCellDef="let element"> {{element.nickname}} </td>
+        </ng-container>
+        <ng-container matColumnDef="authorization">
+            <th mat-header-cell *matHeaderCellDef>Authorization</th>
+            <td mat-cell *matCellDef="let element"> {{element.authorization}} </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <mat-paginator [disabled]="disabled" [length]="length" [pageIndex]="pageIndex" [pageSize]="pageSize"
+        [pageSizeOptions]="[5, 10, 25, 100]" (page)="onPage($event)">
+    </mat-paginator>
+</div>

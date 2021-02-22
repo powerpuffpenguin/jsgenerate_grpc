@@ -56,7 +56,4 @@ export class AppComponent implements OnDestroy {
   ngOnDestroy() {
     this.closed_.close()
   }
-  next(v: string) {
-    this.settingsService.nextTheme(v)
-  }
 }

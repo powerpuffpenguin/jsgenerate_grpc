@@ -21,6 +21,11 @@ const routes: Routes = [
     loadChildren: () => import('./logger/logger.module').then(m => m.LoggerModule),
     canActivate: [RootGuard],
   },
+  {
+    path: 'user',
+    loadChildren: () => import('./user/user.module').then(m => m.UserModule),
+    canActivate: [RootGuard],
+  },
 ];
 
 @NgModule({

@@ -3,7 +3,7 @@ package db
 import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	
+
 	grpc_user "{{pkg}}/protocol/features/user"
 	"strconv"
 {{if !db}}
@@ -44,7 +44,11 @@ func (m *_Management) onReload(data json.RawMessage) (e error) {
 		return
 	}
 	m.Lock()
-	for i, item := range items {
+	for k := range m.keys {
+		delete(m.keys, k)
+	}
+	for i := 0; i < len(items); i++ {
+		item := &items[i]
 		name := strings.ToLower(item.Name)
 		if name == `` ||
 			item.Password == `` ||
@@ -54,7 +58,7 @@ func (m *_Management) onReload(data json.RawMessage) (e error) {
 		item.ID = int64(i)
 		b := md5.Sum([]byte(item.Password))
 		item.Password = hex.EncodeToString(b[:])
-		m.keys[name] = &item
+		m.keys[name] = item
 	}
 	m.Unlock()
 	return
@@ -76,7 +80,7 @@ func (m *_Management) Find(request *grpc_user.FindRequest) (response *grpc_user.
 					continue
 				}
 			} else {
-				if request.Name != findName {
+				if name != findName {
 					continue
 				}
 			}
@@ -84,7 +88,9 @@ func (m *_Management) Find(request *grpc_user.FindRequest) (response *grpc_user.
 		items = append(items, item)
 	}
 	count := int64(len(items))
-	response = &grpc_user.FindResponse{}
+	response = &grpc_user.FindResponse{
+		Result: request.Result,
+	}
 	if request.Result == grpc_user.FindRequest_COUNT || request.Result == grpc_user.FindRequest_DATA_COUNT {
 		response.Count = count
 	}
@@ -97,7 +103,8 @@ func (m *_Management) Find(request *grpc_user.FindRequest) (response *grpc_user.
 			if end > count {
 				end = count
 			}
-			items = items[offset:count]
+
+			items = items[offset:end]
 			if len(items) > 0 {
 				response.Data = make([]*grpc_user.Data, len(items))
 				for i, v := range items {
