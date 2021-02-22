@@ -10,6 +10,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatIconModule } from '@angular/material/icon';
 
 import { QueryComponent } from './query/query.component';
 
@@ -20,6 +22,7 @@ import { QueryComponent } from './query/query.component';
     CommonModule, FormsModule,
     MatButtonModule, MatFormFieldModule, MatCheckboxModule,
     MatInputModule, MatPaginatorModule, MatTableModule,
+    MatTooltipModule, MatIconModule,
     UserRoutingModule
   ]
 })

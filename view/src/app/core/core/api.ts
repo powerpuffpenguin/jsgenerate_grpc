@@ -19,3 +19,11 @@ export enum Authorization {
     // super administrator
     Root = 1,
 }
+export function AuthorizationName(authorization: Authorization): string {
+    switch (authorization) {
+        case Authorization.Root:
+            return 'root'
+        default:
+            return `${authorization}`
+    }
+}

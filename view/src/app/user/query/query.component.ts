@@ -4,7 +4,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToasterService } from 'angular2-toaster';
 import { finalize, takeUntil } from 'rxjs/operators';
-import { ServerAPI } from 'src/app/core/core/api';
+import { Authorization, AuthorizationName, ServerAPI } from 'src/app/core/core/api';
 import { Closed } from 'src/app/core/utils/closed';
 import { Request, Response, Data, DefaultLimit } from './query'
 
@@ -19,7 +19,7 @@ export class QueryComponent implements OnInit, OnDestroy {
   request = new Request()
   lastRequest: Request | undefined
   source = new Array<Data>()
-  readonly displayedColumns: string[] = ['id', 'name', 'nickname', 'authorization']
+  readonly displayedColumns: string[] = ['id', 'name', 'nickname', 'authorization', 'buttons']
   constructor(
     private readonly httpClient: HttpClient,
     private readonly activatedRoute: ActivatedRoute,
@@ -139,5 +139,19 @@ export class QueryComponent implements OnInit, OnDestroy {
       return reuqest.limit
     }
     return DefaultLimit
+  }
+  getAuthorization(authorization: Array<number>): Array<string> {
+    return authorization?.map((v) => {
+      return AuthorizationName(v)
+    })
+  }
+  onClickPassword(data: Data) {
+    console.log('password', data)
+  }
+  onClickEdit(data: Data) {
+    console.log('edit', data)
+  }
+  onClickDelete(data: Data) {
+    console.log('delete', data)
   }
 }
