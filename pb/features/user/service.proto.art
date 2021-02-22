@@ -8,10 +8,37 @@ import "google/api/annotations.proto";
 {{/if}}
 
 service Service {
-    // List return all user info
-    rpc List (ListRequest) returns (ListResponse){{if gateway}}{
+    // Find return find user
+    rpc Find (FindRequest) returns (FindResponse){{if gateway}}{
         option (google.api.http) = {
             get: "/api/v1/features/users"
+        };
+    }{{else}};{{/if}}
+    // add user
+    rpc Add (AddRequest) returns (AddResponse){{if gateway}}{
+        option (google.api.http) = {
+            post: "/api/v1/features/users"
+            body: "*"
+        };
+    }{{else}};{{/if}}
+    // change password
+    rpc Password (PasswordRequest) returns (PasswordResponse){{if gateway}}{
+        option (google.api.http) = {
+            post: "/api/v1/features/users/{id}/password"
+            body: "*"
+        };
+    }{{else}};{{/if}}
+    // change user properties
+    rpc Change (ChangeRequest) returns (ChangeResponse){{if gateway}}{
+        option (google.api.http) = {
+            patch: "/api/v1/features/users/{id}/change"
+            body: "*"
+        };
+    }{{else}};{{/if}}
+    // remove user
+    rpc Remove (RemoveRequest) returns (RemoveResponse){{if gateway}}{
+        option (google.api.http) = {
+            delete: "/api/v1/features/users/{id}"
         };
     }{{else}};{{/if}}
 }
@@ -24,8 +51,56 @@ message Data {
     // * 1 Root
     repeated int32 authorization = 4;
 }
-message ListRequest{
+
+message FindRequest{
+    enum Result {
+        UNIVERSAL = 0;
+        DATA = 1;   // get user data
+        COUNT = 2; // only get user count
+        DATA_COUNT = 3; // get user data and count
+    };
+    Result result = 1;
+    // on return data set limit
+    int64 limit = 2;
+    // on return data set offset
+    int64 offset = 3;
+
+    string name = 4;
+    // if true Fuzzy matching
+    bool nameFuzzy = 5;
 }
-message ListResponse{
-    repeated Data data = 1;
+message FindResponse{
+    FindRequest.Result result = 1;
+    repeated Data data = 2;
+    int64 count = 3;
+}
+message AddRequest{
+    string name = 1;   
+    string password = 2;
+    string nickname = 3;
+    repeated int32 authorization = 4;
+}
+message AddResponse{
+    int64 id = 1; 
+}
+message PasswordRequest{
+    int64 id = 1;
+    string value = 2;
+}
+message PasswordResponse{
+    bool changed = 1;
+}
+message ChangeRequest{
+    int64 id = 1; 
+    string nickname = 2;
+    repeated int32 authorization = 3;
+}
+message ChangeResponse{
+    bool changed = 1;
+}
+message RemoveRequest{
+    repeated int64 id = 1; 
+}
+message RemoveResponse{
+    int64 rowsAffected = 1;
 }

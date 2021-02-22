@@ -146,7 +146,7 @@ func (s _Impl) List(ctx context.Context, request *grpc_logger.ListRequest) (resp
 		return
 	}
 	modtime := stat.ModTime()
-	e = s.ServeMessage(ctx, modtime,
+	nothit, e := s.ServeMessage(ctx, modtime,
 		func(nobody bool) error {
 			if nobody {
 				response = &emptyListResponse
@@ -166,7 +166,7 @@ func (s _Impl) List(ctx context.Context, request *grpc_logger.ListRequest) (resp
 			return nil
 		},
 	)
-	if e == nil {
+	if e == nil && nothit {
 		s.SetHTTPCacheMaxAge(ctx, 60)
 	}
 	return
@@ -195,12 +195,12 @@ func (s _Impl) Download(request *grpc_logger.DownloadRequest, stream grpc_logger
 		return
 	}
 	modtime := stat.ModTime()
-	e = s.ServeContent(stream,
+	nothit, e := s.ServeContent(stream,
 		`application/octet-stream`,
 		modtime,
 		f,
 	)
-	if e == nil {
+	if e == nil && nothit {
 		s.SetHTTPCacheMaxAge(ctx, 60)
 	}
 	return

@@ -2,29 +2,69 @@ package user
 
 import (
 	"context"
+	"strconv"
 
-	"{{pkg}}/module/features/user/internal/db"
 	grpc_user "{{pkg}}/protocol/features/user"
+	"{{pkg}}/utils"
 
 	"{{pkg}}/module"
+	"{{pkg}}/module/features/user/internal/db"
+
+	"google.golang.org/grpc/codes"
 )
 
 type _Impl struct {
 	module.Service
 }
 
-var emptyListResponse grpc_user.ListResponse
+var emptyFindResponse grpc_user.FindResponse
 
-func (s _Impl) List(ctx context.Context, request *grpc_user.ListRequest) (response *grpc_user.ListResponse, e error) {
-	// TAG := `user List`
-	s.ServeMessage(ctx, db.LastModified(), func(nobody bool) error {
+func (s _Impl) Find(ctx context.Context, request *grpc_user.FindRequest) (response *grpc_user.FindResponse, e error) {
+	// TAG := `user Find`
+	var limit int64 = 100
+	if request.Limit < 1 || request.Limit > limit {
+		e = s.Error(codes.InvalidArgument, `limit must range [1,`+strconv.FormatInt(limit, 10)+`]`)
+		return
+	}
+	offset := int64(utils.MaxInt) - 100
+	if request.Offset < 0 || request.Offset > offset {
+		e = s.Error(codes.InvalidArgument, `offset must range [1,`+strconv.FormatInt(offset, 10)+`]`)
+		return
+	}
+	nothit, e := s.ServeMessage(ctx, db.LastModified(), func(nobody bool) error {
 		if nobody {
-			response = &emptyListResponse
+			response = &emptyFindResponse
 		} else {
-			response = &grpc_user.ListResponse{
+			var e error
+			response, e = db.Find(request)
+			if e != nil {
+				return e
 			}
 		}
 		return nil
 	})
+	if e == nil && nothit {
+		s.SetHTTPCacheMaxAge(ctx, 60)
+	}
+	return
+}
+func (s _Impl) Add(ctx context.Context, request *grpc_user.AddRequest) (response *grpc_user.AddResponse, e error) {
+	TAG := `user Add`
+	e = s.Error(codes.Unimplemented, TAG)
+	return
+}
+func (s _Impl) Password(ctx context.Context, request *grpc_user.PasswordRequest) (response *grpc_user.PasswordResponse, e error) {
+	TAG := `user Password`
+	e = s.Error(codes.Unimplemented, TAG)
+	return
+}
+func (s _Impl) Change(ctx context.Context, request *grpc_user.ChangeRequest) (response *grpc_user.ChangeResponse, e error) {
+	TAG := `user Change`
+	e = s.Error(codes.Unimplemented, TAG)
+	return
+}
+func (s _Impl) Remove(ctx context.Context, request *grpc_user.RemoveRequest) (response *grpc_user.RemoveResponse, e error) {
+	TAG := `user Remove`
+	e = s.Error(codes.Unimplemented, TAG)
 	return
 }

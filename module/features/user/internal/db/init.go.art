@@ -44,8 +44,9 @@ func OnReload(data json.RawMessage) (e error) {
 	e = _management.onReload(data)
 	if e != nil {
 		return
-	}{{/if}}
-    return
+	}
+	modtimeHelper.Modified(time.Now()){{/if}}
+	return
 }
 func login(ctx context.Context, name, password, salt string) (session *jwt.Session, e error) {
 {{if db}}

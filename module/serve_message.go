@@ -13,7 +13,7 @@ import (
 // ServeMessage .
 func (s Service) ServeMessage(ctx context.Context, modtime time.Time,
 	response func(nobody bool) error,
-) (e error) {
+) (nothit bool, e error) {
 	var (
 		header      = metadata.MD{}
 		method, ims string
@@ -41,6 +41,7 @@ func (s Service) ServeMessage(ctx context.Context, modtime time.Time,
 		response(true)
 		return
 	}
+	nothit = true
 	e = grpc.SetHeader(ctx, header)
 	if e != nil {
 		return

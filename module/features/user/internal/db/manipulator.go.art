@@ -1,7 +1,13 @@
 package db
 
 import (
-	{{if !db}}
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	
+	grpc_user "{{pkg}}/protocol/features/user"
+	"strconv"
+{{if !db}}
+	"sort"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -14,26 +20,25 @@ import (
 {{else}}
 var _management = newManagement()
 
-type _Data struct {
-	ID            int64
-	Name          string
-	Password      string
-	Nickname      string
-	Authorization []int32
-}
+type dataSortByID []*Data
+
+func (a dataSortByID) Len() int           { return len(a) }
+func (a dataSortByID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a dataSortByID) Less(i, j int) bool { return a[i].ID < a[j].ID }
+
 type _Management struct {
-	keys map[string]*_Data
+	keys map[string]*Data
 	sync.RWMutex
 }
 
 func newManagement() *_Management {
 	return &_Management{
-		keys: make(map[string]*_Data),
+		keys: make(map[string]*Data),
 	}
 }
 
 func (m *_Management) onReload(data json.RawMessage) (e error) {
-	var items []_Data
+	var items []Data
 	e = json.Unmarshal(data, &items)
 	if e != nil {
 		return
@@ -54,4 +59,58 @@ func (m *_Management) onReload(data json.RawMessage) (e error) {
 	m.Unlock()
 	return
 }
-{{/if}}
+
+func (m *_Management) Find(request *grpc_user.FindRequest) (response *grpc_user.FindResponse, e error) {
+	if request.Result < grpc_user.FindRequest_DATA ||
+		request.Result > grpc_user.FindRequest_DATA_COUNT {
+		e = status.Error(codes.InvalidArgument, `not support result enum : `+strconv.FormatInt(int64(request.Result), 10))
+		return
+	}
+	findName := strings.ToLower(request.Name)
+	var items []*Data
+	m.RLock()
+	for name, item := range m.keys {
+		if request.Name != "" {
+			if request.NameFuzzy {
+				if !strings.Contains(name, findName) {
+					continue
+				}
+			} else {
+				if request.Name != findName {
+					continue
+				}
+			}
+		}
+		items = append(items, item)
+	}
+	count := int64(len(items))
+	response = &grpc_user.FindResponse{}
+	if request.Result == grpc_user.FindRequest_COUNT || request.Result == grpc_user.FindRequest_DATA_COUNT {
+		response.Count = count
+	}
+	if request.Result == grpc_user.FindRequest_DATA || request.Result == grpc_user.FindRequest_DATA_COUNT {
+		if request.Offset < count {
+			sort.Sort(dataSortByID(items))
+
+			offset := int(request.Offset)
+			end := request.Offset + request.Limit
+			if end > count {
+				end = count
+			}
+			items = items[offset:count]
+			if len(items) > 0 {
+				response.Data = make([]*grpc_user.Data, len(items))
+				for i, v := range items {
+					response.Data[i] = v.ToPB()
+				}
+			}
+		}
+	}
+	m.RUnlock()
+	return
+}{{/if}}
+
+// Find .
+func Find(request *grpc_user.FindRequest) (*grpc_user.FindResponse, error) {
+{{if db}}{{else}}	return _management.Find(request){{/if}}
+}
