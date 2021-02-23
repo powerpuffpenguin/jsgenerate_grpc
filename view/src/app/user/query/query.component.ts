@@ -7,6 +7,7 @@ import { ToasterService } from 'angular2-toaster';
 import { finalize, takeUntil } from 'rxjs/operators';
 import { AuthorizationName, ServerAPI } from 'src/app/core/core/api';
 import { Closed } from 'src/app/core/utils/closed';
+import { AddComponent } from '../dialog/add/add.component';
 import { DeleteComponent } from '../dialog/delete/delete.component';
 import { EditComponent } from '../dialog/edit/edit.component';
 import { PasswordComponent } from '../dialog/password/password.component';
@@ -188,6 +189,22 @@ export class QueryComponent implements OnInit, OnDestroy {
     })
   }
   onClickAdd() {
-    console.log('add')
+    this.matDialog.open(AddComponent, {
+      data: {
+        onAdded: (data: Data) => {
+          if (this.request.count >= 0) {
+            this.request.count++
+          }
+          if (this.request_.count >= 0) {
+            this.request_.count++
+          }
+
+          const source = [data]
+          source.push(...this.source)
+          this.source = source
+        },
+      },
+      disableClose: true,
+    })
   }
 }

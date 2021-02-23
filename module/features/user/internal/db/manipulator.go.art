@@ -122,6 +122,27 @@ func (m *_Management) Find(request *grpc_user.FindRequest) (response *grpc_user.
 	return
 }
 
+func (m *_Management) Add(name, nickname, password string, authorization []int32) (id int64, e error) {
+	item := Data{
+		Name:          name,
+		Nickname:      nickname,
+		Password:      password,
+		Authorization: authorization,
+	}
+	m.Lock()
+	key := strings.ToLower(name)
+	if _, ok := m.keys[key]; ok {
+		e = status.Error(codes.AlreadyExists, `username already exists : `+name)
+	} else {
+		m.id++
+		id = m.id
+		item.ID = id
+		m.keys[key] = &item
+	}
+	m.Unlock()
+	return
+}
+
 func (m *_Management) Password(id int64, value string) (changed bool, e error) {
 	m.Lock()
 	for _, item := range m.keys {
@@ -201,4 +222,8 @@ func Remove(ids []int64) (int64, error) {
 		return 0, nil
 	}
 {{if db}}{{else}}	return _management.Remove(ids){{/if}}
+}
+// Add data
+func Add(name, nickname, password string, authorization []int32) (int64, error) {
+{{if db}}{{else}}	return _management.Add(name, nickname, password, authorization){{/if}}
 }

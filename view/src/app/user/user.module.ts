@@ -19,10 +19,11 @@ import { QueryComponent } from './query/query.component';
 import { PasswordComponent } from './dialog/password/password.component';
 import { DeleteComponent } from './dialog/delete/delete.component';
 import { EditComponent } from './dialog/edit/edit.component';
+import { AddComponent } from './dialog/add/add.component';
 
 
 @NgModule({
-  declarations: [QueryComponent, PasswordComponent, DeleteComponent, EditComponent],
+  declarations: [QueryComponent, PasswordComponent, DeleteComponent, EditComponent, AddComponent],
   imports: [
     CommonModule, FormsModule,
     MatButtonModule, MatFormFieldModule, MatCheckboxModule,

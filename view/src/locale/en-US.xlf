@@ -26,6 +26,14 @@
           <context context-type="linenumber">32</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="a9c6cf584d570115d42ca1a122b5ad9f47b1823f" datatype="html">
+        <source>add user successed</source>
+        <target>add user successed</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">33</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="2fdaddcb75a311e6ac9bb678043398e1588ddf0a" datatype="html">
         <source>Welcome to use this system</source>
         <target>Welcome to use this system</target>
@@ -214,6 +222,10 @@
           <context context-type="linenumber">21</context>
         </context-group>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/add/add.component.html</context>
+          <context context-type="linenumber">17</context>
+        </context-group>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/user/query/query.component.html</context>
           <context context-type="linenumber">43</context>
         </context-group>
@@ -290,6 +302,10 @@
           <context context-type="linenumber">27</context>
         </context-group>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/add/add.component.html</context>
+          <context context-type="linenumber">19</context>
+        </context-group>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/user/dialog/password/password.component.html</context>
           <context context-type="linenumber">8</context>
         </context-group>
@@ -318,6 +334,10 @@
           <context context-type="linenumber">37</context>
         </context-group>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/add/add.component.html</context>
+          <context context-type="linenumber">28</context>
+        </context-group>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/user/dialog/delete/delete.component.html</context>
           <context context-type="linenumber">8</context>
         </context-group>
@@ -340,6 +360,10 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
           <context context-type="linenumber">38</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/add/add.component.html</context>
+          <context context-type="linenumber">29</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/user/dialog/delete/delete.component.html</context>
@@ -370,6 +394,10 @@
           <context context-type="linenumber">15</context>
         </context-group>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/add/add.component.html</context>
+          <context context-type="linenumber">6</context>
+        </context-group>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/user/query/query.component.html</context>
           <context context-type="linenumber">3</context>
         </context-group>
@@ -385,6 +413,10 @@
           <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
           <context context-type="linenumber">17</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/add/add.component.html</context>
+          <context context-type="linenumber">8</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="3eb49d60bd859eb2d9d3a6d380cdf4e0b8252333" datatype="html">
         <source>Remember me</source>
@@ -392,6 +424,34 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
           <context context-type="linenumber">32</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="94be6ae6ec1f87bedc67020629343b27fdbece0a" datatype="html">
+        <source>Add User</source>
+        <target>Add User</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/add/add.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/query/query.component.html</context>
+          <context context-type="linenumber">37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="ad40282684357d3d79d14d036fcf26d3cef8278d" datatype="html">
+        <source>Nickname</source>
+        <target>Nickname</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/add/add.component.html</context>
+          <context context-type="linenumber">12</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/edit/edit.component.html</context>
+          <context context-type="linenumber">6</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/query/query.component.html</context>
+          <context context-type="linenumber">28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="25ccf7f4b5352e06ba627e3f9a4fb1a6f9957a2f" datatype="html">
@@ -416,18 +476,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/user/dialog/edit/edit.component.html</context>
           <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="ad40282684357d3d79d14d036fcf26d3cef8278d" datatype="html">
-        <source>Nickname</source>
-        <target>Nickname</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/user/dialog/edit/edit.component.html</context>
-          <context context-type="linenumber">6</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/user/query/query.component.html</context>
-          <context context-type="linenumber">28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="d97191e87c1ff0823fbf8c170acd355885c79060" datatype="html">
@@ -460,14 +508,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/user/query/query.component.html</context>
           <context context-type="linenumber">32</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="94be6ae6ec1f87bedc67020629343b27fdbece0a" datatype="html">
-        <source>Add User</source>
-        <target>Add User</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/user/query/query.component.html</context>
-          <context context-type="linenumber">37</context>
         </context-group>
       </trans-unit>
       <trans-unit id="28f86ffd419b869711aa13f5e5ff54be6d70731c" datatype="html">

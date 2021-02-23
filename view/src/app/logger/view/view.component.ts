@@ -98,7 +98,7 @@ export class ViewComponent implements OnInit, OnDestroy {
       }),
     ).subscribe(() => {
       this.backup_.file = this.data.file
-      this.toasterService.pop('success', undefined, `set file level to ${this.data.file} success`)
+      this.toasterService.pop('success', undefined, `set file level to ${this.data.file} successed`)
     }, (e) => {
       this.toasterService.pop('error', undefined, e)
     })
@@ -121,7 +121,7 @@ export class ViewComponent implements OnInit, OnDestroy {
         return
       }
       this.backup_.console = this.data.console
-      this.toasterService.pop('success', undefined, `set console level to ${this.data.console} success`)
+      this.toasterService.pop('success', undefined, `set console level to ${this.data.console} successed`)
     }, (e) => {
       if (this.closed_.isClosed) {
         return

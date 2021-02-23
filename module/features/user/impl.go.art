@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"net/http"
 	"strconv"
 
 	"{{pkg}}/logger"
@@ -60,7 +61,43 @@ func (s _Impl) Find(ctx context.Context, request *grpc_user.FindRequest) (respon
 }
 func (s _Impl) Add(ctx context.Context, request *grpc_user.AddRequest) (response *grpc_user.AddResponse, e error) {
 	TAG := `user Add`
-	e = s.Error(codes.Unimplemented, TAG)
+	session, e := s.AccessSession(ctx)
+	if e != nil {
+		return
+	}
+	if !utils.MatchName(request.Name) {
+		e = s.Error(codes.InvalidArgument, `invalid name`)
+		return
+	} else if !utils.MatchPassword(request.Password) {
+		e = s.Error(codes.InvalidArgument, `invalid password`)
+		return
+	}
+	id, e := db.Add(request.Name, request.Nickname, request.Password, request.Authorization)
+	if e != nil {
+		if ce := logger.Logger.Check(zap.WarnLevel, TAG); ce != nil {
+			ce.Write(
+				zap.Error(e),
+				zap.String(`session`, session.Who()),
+				zap.String(`name`, request.Name),
+				zap.String(`nickname`, request.Nickname),
+				zap.Int32s(`authorization`, request.Authorization),
+			)
+		}
+		return
+	}
+	response = &grpc_user.AddResponse{
+		Id: id,
+	}
+	s.SetHTTPCode(ctx, http.StatusCreated)
+	if ce := logger.Logger.Check(zap.InfoLevel, TAG); ce != nil {
+		ce.Write(
+			zap.String(`session`, session.Who()),
+			zap.Int64(`id`, id),
+			zap.String(`name`, request.Name),
+			zap.String(`nickname`, request.Nickname),
+			zap.Int32s(`authorization`, request.Authorization),
+		)
+	}
 	return
 }
 
@@ -78,6 +115,7 @@ func (s _Impl) Password(ctx context.Context, request *grpc_user.PasswordRequest)
 		return
 	} else if !utils.MatchPassword(request.Value) {
 		e = s.Error(codes.InvalidArgument, `invalid password`)
+		return
 	}
 	changed, e := db.Password(request.Id, request.Value)
 	if e != nil {
