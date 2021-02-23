@@ -3,7 +3,11 @@ import { join, normalize } from 'path';
 import { Command } from '../commander';
 import { ExecFile } from './utils';
 async function opencc(cwd: string, src: string, dst: string) {
-    await ExecFile('opencc', ['-i', src, '-o', dst, '-c', 't2s.json'], {
+    const args = ['-i', src, '-o', dst, '-c', 't2s.json']
+    const file = 'opencc'
+    console.log(`cwd=${cwd}`)
+    console.log(file, args.join(' '))
+    await ExecFile(file, args, {
         cwd: cwd,
     })
     const filename = join(cwd, dst)
@@ -32,8 +36,10 @@ export function BuildView(program: Command, view: boolean) {
                 return
             } else {
                 file = 'ng'
-                args = ['build', '--prod', '--base-href', '/view/']
+                args = ['build', '--prod', '--base-href', '/view/', '--localize']
             }
+            console.log(`cwd=${cwd}`)
+            console.log(file, args.join(' '))
             ExecFile(file, args, {
                 cwd: cwd,
             }).catch(() => {

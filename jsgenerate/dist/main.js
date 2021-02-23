@@ -112,10 +112,18 @@ function jsgenerate(context) {
             prefix.push('static' + path_1.sep);
             exclude.push('static');
             exclude.push(path_1.join('cmd', 'internal', 'daemon', 'gin.go'));
+            prefix.push('assets' + path_1.sep);
+            exclude.push('assets');
         }
         if (!md.view) {
             prefix.push('view' + path_1.sep);
             exclude.push('view');
+            const locales = ['en-US', 'zh-Hans', 'zh-Hant'];
+            locales.forEach((str) => {
+                str = path_1.join('assets', str);
+                prefix.push(str + path_1.sep);
+                exclude.push(str);
+            });
         }
         const nameService = new helper_1.NameService(context.output, uuid, new helper_1.Exclude(prefix, [], exclude)).rename(`${md.project}.jsonnet`, `example.jsonnet`, `bin`);
         const readme = path_1.join(__dirname, '..', '..', 'README.md');

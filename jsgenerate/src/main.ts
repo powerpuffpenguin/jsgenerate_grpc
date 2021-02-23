@@ -108,10 +108,19 @@ export function jsgenerate(context: Context) {
             prefix.push('static' + sep)
             exclude.push('static')
             exclude.push(join('cmd', 'internal', 'daemon', 'gin.go'))
+
+            prefix.push('assets' + sep)
+            exclude.push('assets')
         }
         if (!md.view) {
             prefix.push('view' + sep)
             exclude.push('view')
+            const locales = ['en-US', 'zh-Hans', 'zh-Hant']
+            locales.forEach((str) => {
+                str = join('assets', str)
+                prefix.push(str + sep)
+                exclude.push(str)
+            })
         }
         const nameService = new NameService(context.output, uuid,
             new Exclude(

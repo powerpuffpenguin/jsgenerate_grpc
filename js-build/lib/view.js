@@ -5,7 +5,11 @@ const fs_1 = require("fs");
 const path_1 = require("path");
 const utils_1 = require("./utils");
 async function opencc(cwd, src, dst) {
-    await utils_1.ExecFile('opencc', ['-i', src, '-o', dst, '-c', 't2s.json'], {
+    const args = ['-i', src, '-o', dst, '-c', 't2s.json'];
+    const file = 'opencc';
+    console.log(`cwd=${cwd}`);
+    console.log(file, args.join(' '));
+    await utils_1.ExecFile(file, args, {
         cwd: cwd,
     });
     const filename = path_1.join(cwd, dst);
@@ -36,8 +40,10 @@ function BuildView(program, view) {
         }
         else {
             file = 'ng';
-            args = ['build', '--prod', '--base-href', '/view/'];
+            args = ['build', '--prod', '--base-href', '/view/', '--localize'];
         }
+        console.log(`cwd=${cwd}`);
+        console.log(file, args.join(' '));
         utils_1.ExecFile(file, args, {
             cwd: cwd,
         }).catch(() => {
