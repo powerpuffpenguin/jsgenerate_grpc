@@ -33,6 +33,9 @@ export class PasswordComponent implements OnInit, OnDestroy {
     this.matDialogRef.close()
   }
   onSubmit() {
+    if (this.disabled) {
+      return
+    }
     this.disabled = true
     ServerAPI.v1.features.users.child(this.data.id, 'password').post(this.httpClient,
       {

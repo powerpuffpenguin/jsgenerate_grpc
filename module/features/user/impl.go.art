@@ -103,9 +103,46 @@ func (s _Impl) Password(ctx context.Context, request *grpc_user.PasswordRequest)
 	}
 	return
 }
+
+var changedChangeResponse = grpc_user.ChangeResponse{Changed: true}
+var notChangedChangeResponse grpc_user.ChangeResponse
+
 func (s _Impl) Change(ctx context.Context, request *grpc_user.ChangeRequest) (response *grpc_user.ChangeResponse, e error) {
 	TAG := `user Change`
-	e = s.Error(codes.Unimplemented, TAG)
+	session, e := s.AccessSession(ctx)
+	if e != nil {
+		return
+	}
+	if request.Id == 0 {
+		e = s.Error(codes.InvalidArgument, `id not supported 0`)
+		return
+	}
+	changed, e := db.Change(request.Id, request.Nickname, request.Authorization)
+	if e != nil {
+		if ce := logger.Logger.Check(zap.WarnLevel, TAG); ce != nil {
+			ce.Write(
+				zap.Error(e),
+				zap.String(`session`, session.Who()),
+				zap.Int64(`id`, request.Id),
+				zap.String(`nickname`, request.Nickname),
+				zap.Int32s(`authorization`, request.Authorization),
+			)
+		}
+		return
+	}
+	if changed {
+		response = &changedChangeResponse
+		if ce := logger.Logger.Check(zap.InfoLevel, TAG); ce != nil {
+			ce.Write(
+				zap.String(`session`, session.Who()),
+				zap.Int64(`id`, request.Id),
+				zap.String(`nickname`, request.Nickname),
+				zap.Int32s(`authorization`, request.Authorization),
+			)
+		}
+	} else {
+		response = &notChangedChangeResponse
+	}
 	return
 }
 func (s _Impl) Remove(ctx context.Context, request *grpc_user.RemoveRequest) (response *grpc_user.RemoveResponse, e error) {

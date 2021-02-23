@@ -31,7 +31,7 @@ service Service {
     // change user properties
     rpc Change (ChangeRequest) returns (ChangeResponse){{if gateway}}{
         option (google.api.http) = {
-            patch: "/api/v1/features/users/{id}/change"
+            post: "/api/v1/features/users/{id}/change"
             body: "*"
         };
     }{{else}};{{/if}}

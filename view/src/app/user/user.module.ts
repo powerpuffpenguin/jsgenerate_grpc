@@ -18,10 +18,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { QueryComponent } from './query/query.component';
 import { PasswordComponent } from './dialog/password/password.component';
 import { DeleteComponent } from './dialog/delete/delete.component';
+import { EditComponent } from './dialog/edit/edit.component';
 
 
 @NgModule({
-  declarations: [QueryComponent, PasswordComponent, DeleteComponent],
+  declarations: [QueryComponent, PasswordComponent, DeleteComponent, EditComponent],
   imports: [
     CommonModule, FormsModule,
     MatButtonModule, MatFormFieldModule, MatCheckboxModule,

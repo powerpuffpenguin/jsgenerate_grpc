@@ -6,7 +6,6 @@ import { finalize, takeUntil } from 'rxjs/operators';
 import { ServerAPI } from 'src/app/core/core/api';
 import { I18nService } from 'src/app/core/i18n/i18n.service';
 import { Closed } from 'src/app/core/utils/closed';
-import { md5String } from 'src/app/core/utils/utils';
 import { Data } from '../../query/query';
 
 @Component({
@@ -32,6 +31,9 @@ export class DeleteComponent implements OnInit, OnDestroy {
     this.matDialogRef.close()
   }
   onSubmit() {
+    if (this.disabled) {
+      return
+    }
     this.disabled = true
     ServerAPI.v1.features.users.child(this.data.id).delete(this.httpClient).pipe(
       takeUntil(this.closed_.observable),

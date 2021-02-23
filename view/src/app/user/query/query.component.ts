@@ -8,6 +8,7 @@ import { finalize, takeUntil } from 'rxjs/operators';
 import { AuthorizationName, ServerAPI } from 'src/app/core/core/api';
 import { Closed } from 'src/app/core/utils/closed';
 import { DeleteComponent } from '../dialog/delete/delete.component';
+import { EditComponent } from '../dialog/edit/edit.component';
 import { PasswordComponent } from '../dialog/password/password.component';
 import { Request, Response, Data, DefaultLimit } from './query'
 
@@ -156,7 +157,10 @@ export class QueryComponent implements OnInit, OnDestroy {
     })
   }
   onClickEdit(data: Data) {
-    console.log('edit', data)
+    this.matDialog.open(EditComponent, {
+      data: data,
+      disableClose: true,
+    })
   }
   onClickDelete(data: Data) {
     this.matDialog.open(DeleteComponent, {

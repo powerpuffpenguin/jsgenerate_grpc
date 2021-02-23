@@ -7,7 +7,7 @@
         <target>密碼已更改</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.html</context>
-          <context context-type="linenumber">29</context>
+          <context context-type="linenumber">30</context>
         </context-group>
       </trans-unit>
       <trans-unit id="22f20fb5b71d9ee3c1ff539b9625b1018d6b693a" datatype="html">
@@ -15,7 +15,15 @@
         <target>用戶已刪除</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.html</context>
-          <context context-type="linenumber">30</context>
+          <context context-type="linenumber">31</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="a617231796e6924f6dd5973586ddf0f86075b12b" datatype="html">
+        <source>user properties changed</source>
+        <target>用戶屬性已更改</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">32</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2fdaddcb75a311e6ac9bb678043398e1588ddf0a" datatype="html">
@@ -314,6 +322,10 @@
           <context context-type="linenumber">8</context>
         </context-group>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/edit/edit.component.html</context>
+          <context context-type="linenumber">15</context>
+        </context-group>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/user/dialog/password/password.component.html</context>
           <context context-type="linenumber">13</context>
         </context-group>
@@ -332,6 +344,10 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/user/dialog/delete/delete.component.html</context>
           <context context-type="linenumber">9</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/edit/edit.component.html</context>
+          <context context-type="linenumber">16</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/user/dialog/password/password.component.html</context>
@@ -394,6 +410,26 @@
           <context context-type="linenumber">4</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="20fed40a548f66f62a795f854e10c3743b0e39a9" datatype="html">
+        <source>properties of <x id="INTERPOLATION" equiv-text="{{data.name}}"/></source>
+        <target><x id="INTERPOLATION" equiv-text="{{data.name}}"/> 的屬性</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/edit/edit.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="ad40282684357d3d79d14d036fcf26d3cef8278d" datatype="html">
+        <source>Nickname</source>
+        <target>昵稱</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/edit/edit.component.html</context>
+          <context context-type="linenumber">6</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/query/query.component.html</context>
+          <context context-type="linenumber">28</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="d97191e87c1ff0823fbf8c170acd355885c79060" datatype="html">
         <source>password of <x id="INTERPOLATION" equiv-text="{{data.name}}"/></source>
         <target><x id="INTERPOLATION" equiv-text="{{data.name}}"/> 的密碼</target>
@@ -416,14 +452,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/user/query/query.component.html</context>
           <context context-type="linenumber">9</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="ad40282684357d3d79d14d036fcf26d3cef8278d" datatype="html">
-        <source>Nickname</source>
-        <target>昵稱</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/user/query/query.component.html</context>
-          <context context-type="linenumber">28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="a3ab25ce3059edcc5e2492aa915094c5dc296c8e" datatype="html">

@@ -19,6 +19,7 @@ export enum Authorization {
     // super administrator
     Root = 1,
 }
+export const Authorizations = [Authorization.Root]
 export function AuthorizationName(authorization: Authorization): string {
     switch (authorization) {
         case Authorization.Root:

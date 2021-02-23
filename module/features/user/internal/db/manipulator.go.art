@@ -2,7 +2,7 @@ package db
 
 import (
 	"time"
-	
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -137,6 +137,30 @@ func (m *_Management) Password(id int64, value string) (changed bool, e error) {
 	return
 }
 
+func (m *_Management) Change(id int64, nickname string, authorization []int32) (changed bool, e error) {
+	m.Lock()
+	for _, item := range m.keys {
+		if item.ID == id {
+			if nickname != item.Nickname || len(item.Authorization) != len(authorization) {
+				item.Nickname = nickname
+				item.Authorization = authorization
+				changed = true
+			} else {
+				for i := 0; i < len(authorization); i++ {
+					if item.Authorization[i] != authorization[i] {
+						item.Authorization = authorization
+						changed = true
+						break
+					}
+				}
+			}
+			break
+		}
+	}
+	m.Unlock()
+	return
+}
+
 func (m *_Management) Remove(ids []int64) (rowsAffected int64, e error) {
 	m.Lock()
 	for key, item := range m.keys {
@@ -166,6 +190,10 @@ func Find(request *grpc_user.FindRequest) (*grpc_user.FindResponse, error) {
 // Password change password
 func Password(id int64, value string) (bool, error) {
 {{if db}}{{else}}	return _management.Password(id, value){{/if}}
+}
+// Change properties
+func Change(id int64, nickname string, authorization []int32) (bool, error) {
+{{if db}}{{else}}	return _management.Change(id, nickname, authorization){{/if}}
 }
 // Remove data
 func Remove(ids []int64) (int64, error) {
