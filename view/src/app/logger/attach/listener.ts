@@ -96,12 +96,8 @@ export class Listener {
     }
     private _onmessage(ws: WebSocket, evt: MessageEvent) {
         if (typeof evt.data === "string") {
-            const str: string = evt.data
-            const strs = str.split("\n")
-            for (let i = 0; i < strs.length; i++) {
-                strs[i] = strs[i].trim()
-            }
-            this.writer.write(strs.join("\r\n"))
+            const str = evt.data.replace(/\n/g, "\r\n")
+            this.writer.write(str)
         } else {
             this.writer.writeln(`not supported data type : ${typeof evt.data}`)
             console.log(`not supported data type : ${typeof evt.data}`, evt.data)

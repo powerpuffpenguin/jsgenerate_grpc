@@ -1,5 +1,5 @@
 import { execFile, ExecFileOptions } from 'child_process'
-import { Dir, promises, rmdir } from 'fs'
+import { Dir, promises } from 'fs'
 import { join } from 'path'
 export interface Dict {
     [key: string]: any;

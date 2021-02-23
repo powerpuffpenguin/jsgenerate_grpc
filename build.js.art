@@ -4,8 +4,13 @@ const { Command } = require('./js-build/commander')
 const { Append } = require('./js-build/lib/utils')
 const { Build, BuildTest } = require('./js-build/lib/build')
 const { BuildSource } = require('./js-build/lib/source')
+const { BuildView } = require('./js-build/lib/view')
 const { BuildGRPC } = require('./js-build/lib/grpc')
 const Name = '{{project}}'
+const PackageName = '{{pkg}}'
+const UseGin = {{gin}}
+const UseGateway = {{gateway}}
+const UseView = {{view}}
 const TestBench = [
     'utils'
 ]
@@ -29,8 +34,12 @@ Build(program, 'windows', Arch,
     `${Name}.jsonnet`,
 )
 
-BuildTest(program, '{{pkg}}', TestUnit, TestBench)
-BuildGRPC(program, '{{pkg}}', '{{uuid}}', {{gateway}}, {{gin}})
-{{if gin}}BuildSource(program, {{view}})
-{{/if}}
+BuildTest(program, PackageName, TestUnit, TestBench)
+BuildGRPC(program, PackageName, '{{uuid}}', UseGateway, UseGin)
+if (UseGin) {
+    BuildSource(program, UseView)
+}
+if (UseView) {
+    BuildView(program)
+}
 program.parse(process.argv)
