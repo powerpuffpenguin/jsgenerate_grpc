@@ -1,5 +1,6 @@
+import { promises } from 'fs';
 import { join, normalize } from 'path';
-import { Append, Env, ExecFile } from './utils';
+import { Append, Env, ExecFile, Exec } from './utils';
 import { Command } from '../commander'
 class Target {
     private name_ = ''
@@ -85,18 +86,22 @@ export function Build(program: Command,
         .option('--debug', 'build as debug')
         .action(function () {
             const opts = this.opts()
-            let arch = opts['arch']
-            if (arch === undefined) {
-                arch = 'amd64'
+            if (opts['Version']) {
+                buildVersion()
+            } else {
+                let arch = opts['arch']
+                if (arch === undefined) {
+                    arch = 'amd64'
+                }
+                const taget = new Target(os, arch, name, ext, opts['debug'])
+                taget.build().then(() => {
+                    return taget.pack(opts['pack'],
+                        ...packs,
+                    )
+                }).catch(() => {
+                    process.exit(1)
+                })
             }
-            const taget = new Target(os, arch, name, ext, opts['debug'])
-            taget.build().then(() => {
-                return taget.pack(opts['pack'],
-                    ...packs,
-                )
-            }).catch(() => {
-                process.exit(1)
-            })
         })
 }
 async function test(pkg: string, args: Array<string>, ...names: Array<string>) {
@@ -142,6 +147,40 @@ export function BuildTest(program: Command, pkg: string, unit: Array<string>, be
                 names = unit
             }
             test(pkg, args, ...names).catch(() => {
+                process.exit(1)
+            })
+        })
+}
+
+async function buildVersion() {
+    let tag = ''
+    let commit = ''
+    try {
+        tag = await Exec('git', ['describe'])
+    } catch (e) {
+
+    }
+    try {
+        commit = await Exec('git', ['rev-parse', 'HEAD'])
+    } catch (e) {
+
+    }
+    const date = new Date().toUTCString()
+    const filename = normalize(join(__dirname, '..', '..', 'version', 'version.go'))
+    const str = ['package version', '',
+        '// Tag git tag', 'const Tag = `' + tag.trim() + '`', '',
+        '// Commit git commit', 'const Commit = `' + commit.trim() + '`', '',
+        '// Date build datetime', 'const Date = `' + date + '`', '',
+    ].join("\r\n")
+    console.log(str.trim())
+    await promises.writeFile(filename, str)
+}
+export function BuildVersion(program: Command) {
+    program.command('version')
+        .description('update ' + join('version', 'version.go'))
+        .action(function () {
+            buildVersion().catch((e) => {
+                console.warn(e)
                 process.exit(1)
             })
         })

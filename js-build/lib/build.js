@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BuildTest = exports.Build = void 0;
+exports.BuildVersion = exports.BuildTest = exports.Build = void 0;
+const fs_1 = require("fs");
 const path_1 = require("path");
 const utils_1 = require("./utils");
 class Target {
@@ -88,16 +89,21 @@ function Build(program, os, arch, name, ext, ...packs) {
         .option('--debug', 'build as debug')
         .action(function () {
         const opts = this.opts();
-        let arch = opts['arch'];
-        if (arch === undefined) {
-            arch = 'amd64';
+        if (opts['Version']) {
+            buildVersion();
         }
-        const taget = new Target(os, arch, name, ext, opts['debug']);
-        taget.build().then(() => {
-            return taget.pack(opts['pack'], ...packs);
-        }).catch(() => {
-            process.exit(1);
-        });
+        else {
+            let arch = opts['arch'];
+            if (arch === undefined) {
+                arch = 'amd64';
+            }
+            const taget = new Target(os, arch, name, ext, opts['debug']);
+            taget.build().then(() => {
+                return taget.pack(opts['pack'], ...packs);
+            }).catch(() => {
+                process.exit(1);
+            });
+        }
     });
 }
 exports.Build = Build;
@@ -150,3 +156,37 @@ function BuildTest(program, pkg, unit, bench) {
     });
 }
 exports.BuildTest = BuildTest;
+async function buildVersion() {
+    let tag = '';
+    let commit = '';
+    try {
+        tag = await utils_1.Exec('git', ['describe']);
+    }
+    catch (e) {
+    }
+    try {
+        commit = await utils_1.Exec('git', ['rev-parse', 'HEAD']);
+    }
+    catch (e) {
+    }
+    const date = new Date().toUTCString();
+    const filename = path_1.normalize(path_1.join(__dirname, '..', '..', 'version', 'version.go'));
+    const str = ['package version', '',
+        '// Tag git tag', 'const Tag = `' + tag.trim() + '`', '',
+        '// Commit git commit', 'const Commit = `' + commit.trim() + '`', '',
+        '// Date build datetime', 'const Date = `' + date + '`', '',
+    ].join("\r\n");
+    console.log(str);
+    await fs_1.promises.writeFile(filename, str);
+}
+function BuildVersion(program) {
+    program.command('version')
+        .description('update ' + path_1.join('version', 'version.go'))
+        .action(function () {
+        buildVersion().catch((e) => {
+            console.warn(e);
+            process.exit(1);
+        });
+    });
+}
+exports.BuildVersion = BuildVersion;

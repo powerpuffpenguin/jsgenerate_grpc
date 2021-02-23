@@ -20,7 +20,7 @@ export function Merge(...objs: Array<Dict>): Dict {
 export function Env(obj: Dict) {
     return Merge(process.env, obj)
 }
-export function ExecFile(file: string, args: Array<string>, opts: ExecFileOptions): Promise<void> {
+export function ExecFile(file: string, args: Array<string>, opts?: ExecFileOptions): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         execFile(file, args, opts, (e, stdout, stderr) => {
             process.stdout.write(stdout)
@@ -33,7 +33,21 @@ export function ExecFile(file: string, args: Array<string>, opts: ExecFileOption
         })
     })
 }
-
+export function Exec(file: string, args: Array<string>, opts?: ExecFileOptions): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        execFile(file, args, opts, (e, stdout, stderr) => {
+            if (e) {
+                if (typeof stderr === "string" && stderr.length > 0) {
+                    reject(stderr)
+                } else {
+                    reject(e)
+                }
+            } else {
+                resolve(stdout ?? '')
+            }
+        })
+    })
+}
 export function Append(items: Array<any>, ...elems: Array<any>) {
     const obj = []
     obj.push(...items)

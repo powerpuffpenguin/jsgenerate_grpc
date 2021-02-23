@@ -2,7 +2,7 @@
 "use strict";
 const { Command } = require('./js-build/commander')
 const { Append } = require('./js-build/lib/utils')
-const { Build, BuildTest } = require('./js-build/lib/build')
+const { Build, BuildTest, BuildVersion } = require('./js-build/lib/build')
 const { BuildSource } = require('./js-build/lib/source')
 const { BuildView } = require('./js-build/lib/view')
 const { BuildGRPC } = require('./js-build/lib/grpc')
@@ -34,6 +34,7 @@ Build(program, 'windows', Arch,
     `${Name}.jsonnet`,
 )
 
+BuildVersion(program)
 BuildTest(program, PackageName, TestUnit, TestBench)
 BuildGRPC(program, PackageName, '{{uuid}}', UseGateway, UseGin)
 if (UseGin) {

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RmDirectory = exports.ClearDirectory = exports.Append = exports.ExecFile = exports.Env = exports.Merge = void 0;
+exports.RmDirectory = exports.ClearDirectory = exports.Append = exports.Exec = exports.ExecFile = exports.Env = exports.Merge = void 0;
 const child_process_1 = require("child_process");
 const fs_1 = require("fs");
 const path_1 = require("path");
@@ -36,6 +36,24 @@ function ExecFile(file, args, opts) {
     });
 }
 exports.ExecFile = ExecFile;
+function Exec(file, args, opts) {
+    return new Promise((resolve, reject) => {
+        child_process_1.execFile(file, args, opts, (e, stdout, stderr) => {
+            if (e) {
+                if (typeof stderr === "string" && stderr.length > 0) {
+                    reject(stderr);
+                }
+                else {
+                    reject(e);
+                }
+            }
+            else {
+                resolve(stdout ?? '');
+            }
+        });
+    });
+}
+exports.Exec = Exec;
 function Append(items, ...elems) {
     const obj = [];
     obj.push(...items);
