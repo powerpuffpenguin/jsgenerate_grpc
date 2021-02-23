@@ -9,6 +9,13 @@
           <context context-type="linenumber">29</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="22f20fb5b71d9ee3c1ff539b9625b1018d6b693a" datatype="html">
+        <source>user deleted</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">30</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="2fdaddcb75a311e6ac9bb678043398e1588ddf0a" datatype="html">
         <source>Welcome to use this system</source>
         <context-group purpose="location">
@@ -176,6 +183,10 @@
           <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
           <context context-type="linenumber">21</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/query/query.component.html</context>
+          <context context-type="linenumber">43</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="6ad31729632818476420bb0f698d617436263675" datatype="html">
         <source>User Management</source>
@@ -241,12 +252,20 @@
           <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
           <context context-type="linenumber">27</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/password/password.component.html</context>
+          <context context-type="linenumber">8</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="c7014c6360e94b236286b869c3fe0ea9911c0387" datatype="html">
         <source>New Password</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/password/password.component.html</context>
           <context context-type="linenumber">11</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/password/password.component.html</context>
+          <context context-type="linenumber">6</context>
         </context-group>
       </trans-unit>
       <trans-unit id="71c77bb8cecdf11ec3eead24dd1ba506573fa9cd" datatype="html">
@@ -259,6 +278,14 @@
           <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
           <context context-type="linenumber">37</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/delete/delete.component.html</context>
+          <context context-type="linenumber">8</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/password/password.component.html</context>
+          <context context-type="linenumber">13</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="f4e529ae5ffd73001d1ff4bbdeeb0a72e342e5c8" datatype="html">
         <source>Close</source>
@@ -269,6 +296,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
           <context context-type="linenumber">38</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/delete/delete.component.html</context>
+          <context context-type="linenumber">9</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/password/password.component.html</context>
+          <context context-type="linenumber">14</context>
         </context-group>
       </trans-unit>
       <trans-unit id="08ade5a54735040b792222377ab8defaf93590df" datatype="html">
@@ -284,6 +319,14 @@
           <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
           <context context-type="linenumber">15</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/query/query.component.html</context>
+          <context context-type="linenumber">3</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/query/query.component.html</context>
+          <context context-type="linenumber">24</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="bd4960dae6ed2a772e2ca2ecd20e1f5ff9b0641e" datatype="html">
         <source>Name Invalid</source>
@@ -297,6 +340,76 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/sign-in/sign-in.component.html</context>
           <context context-type="linenumber">32</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="25ccf7f4b5352e06ba627e3f9a4fb1a6f9957a2f" datatype="html">
+        <source>delete <x id="INTERPOLATION" equiv-text="{{data.name}}"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/delete/delete.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7cc1036dcc959bd19fdf14cd7856f320c4d8532e" datatype="html">
+        <source>Once deleted, the data cannot be recovered. Please confirm the operation.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/delete/delete.component.html</context>
+          <context context-type="linenumber">4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="d97191e87c1ff0823fbf8c170acd355885c79060" datatype="html">
+        <source>password of <x id="INTERPOLATION" equiv-text="{{data.name}}"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/dialog/password/password.component.html</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="510df3f76eb0c58f2ca55473fba0451e96003914" datatype="html">
+        <source>fuzzy matching</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/query/query.component.html</context>
+          <context context-type="linenumber">7</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="d9f726c70aeba7fa6d3d68bff718abe78b1e50ac" datatype="html">
+        <source>Query</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/query/query.component.html</context>
+          <context context-type="linenumber">9</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="ad40282684357d3d79d14d036fcf26d3cef8278d" datatype="html">
+        <source>Nickname</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/query/query.component.html</context>
+          <context context-type="linenumber">28</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="a3ab25ce3059edcc5e2492aa915094c5dc296c8e" datatype="html">
+        <source>Authorization</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/query/query.component.html</context>
+          <context context-type="linenumber">32</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="94be6ae6ec1f87bedc67020629343b27fdbece0a" datatype="html">
+        <source>Add User</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/query/query.component.html</context>
+          <context context-type="linenumber">37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="28f86ffd419b869711aa13f5e5ff54be6d70731c" datatype="html">
+        <source>Edit</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/query/query.component.html</context>
+          <context context-type="linenumber">47</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="826b25211922a1b46436589233cb6f1a163d89b7" datatype="html">
+        <source>Delete</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/user/query/query.component.html</context>
+          <context context-type="linenumber">51</context>
         </context-group>
       </trans-unit>
     </body>

@@ -73,16 +73,16 @@ func login(ctx context.Context, name, password, salt string) (session *jwt.Sessi
 }
 func password(ctx context.Context, id int64, old, password string) (changed bool, e error) {
 {{if db}}
-{{else}}
-	_management.Lock()
+{{else}}	_management.Lock()
 	for _, item := range _management.keys {
-		if item.ID == id && item.Password == old {
-			item.Password = password
-			changed = true
+		if item.ID == id {
+			if item.Password == old {
+				item.Password = password
+				changed = true
+			}
 			break
 		}
 	}
-	_management.Unlock()
-{{/if}}
+	_management.Unlock(){{/if}}
 	return
 }

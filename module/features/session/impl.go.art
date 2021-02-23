@@ -51,11 +51,11 @@ func (s _Impl) Signin(ctx context.Context, request *grpc_session.SigninRequest) 
 	}
 
 	if !utils.MatchName(request.Name) {
-		e = s.Error(codes.InvalidArgument, `name not supported`)
+		e = s.Error(codes.InvalidArgument, `invalid name`)
 		return
 	}
-	if request.Password == `` {
-		e = s.Error(codes.InvalidArgument, `password not supported empty`)
+	if !utils.MatchPassword(request.Password) {
+		e = s.Error(codes.InvalidArgument, `invalid password`)
 		return
 	}
 
@@ -124,11 +124,11 @@ var emptyPasswordResponse grpc_session.PasswordResponse
 
 func (s _Impl) Password(ctx context.Context, request *grpc_session.PasswordRequest) (response *grpc_session.PasswordResponse, e error) {
 	TAG := `session Password`
-	if request.Old == `` {
-		e = s.Error(codes.InvalidArgument, `old password not supported empty`)
+	if !utils.MatchPassword(request.Old) {
+		e = s.Error(codes.InvalidArgument, `invalid old password`)
 		return
-	} else if request.Value == `` {
-		e = s.Error(codes.InvalidArgument, `new password not supported empty`)
+	} else if !utils.MatchPassword(request.Value) {
+		e = s.Error(codes.InvalidArgument, `invalid new password`)
 		return
 	} else if request.Old == request.Value {
 		e = s.Error(codes.InvalidArgument, `password not changed`)

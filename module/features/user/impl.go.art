@@ -4,12 +4,14 @@ import (
 	"context"
 	"strconv"
 
+	"{{pkg}}/logger"
 	grpc_user "{{pkg}}/protocol/features/user"
 	"{{pkg}}/utils"
 
 	"{{pkg}}/module"
 	"{{pkg}}/module/features/user/internal/db"
 
+	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 )
 
@@ -20,7 +22,7 @@ type _Impl struct {
 var emptyFindResponse grpc_user.FindResponse
 
 func (s _Impl) Find(ctx context.Context, request *grpc_user.FindRequest) (response *grpc_user.FindResponse, e error) {
-	// TAG := `user Find`
+	TAG := `user Find`
 	var limit int64 = 100
 	if request.Limit < 1 || request.Limit > limit {
 		e = s.Error(codes.InvalidArgument, `limit must range [1,`+strconv.FormatInt(limit, 10)+`]`)
@@ -43,8 +45,16 @@ func (s _Impl) Find(ctx context.Context, request *grpc_user.FindRequest) (respon
 		}
 		return nil
 	})
-	if e == nil && nothit {
-		s.SetHTTPCacheMaxAge(ctx, 60)
+	if e != nil {
+		if ce := logger.Logger.Check(zap.WarnLevel, TAG); ce != nil {
+			ce.Write(
+				zap.Error(e),
+			)
+		}
+		return
+	}
+	if nothit {
+		s.SetHTTPCacheMaxAge(ctx, 0)
 	}
 	return
 }
@@ -53,9 +63,44 @@ func (s _Impl) Add(ctx context.Context, request *grpc_user.AddRequest) (response
 	e = s.Error(codes.Unimplemented, TAG)
 	return
 }
+
+var changedPasswordResponse = grpc_user.PasswordResponse{Changed: true}
+var notChangedPasswordResponse grpc_user.PasswordResponse
+
 func (s _Impl) Password(ctx context.Context, request *grpc_user.PasswordRequest) (response *grpc_user.PasswordResponse, e error) {
 	TAG := `user Password`
-	e = s.Error(codes.Unimplemented, TAG)
+	session, e := s.AccessSession(ctx)
+	if e != nil {
+		return
+	}
+	if request.Id == 0 {
+		e = s.Error(codes.InvalidArgument, `id not supported 0`)
+		return
+	} else if !utils.MatchPassword(request.Value) {
+		e = s.Error(codes.InvalidArgument, `invalid password`)
+	}
+	changed, e := db.Password(request.Id, request.Value)
+	if e != nil {
+		if ce := logger.Logger.Check(zap.WarnLevel, TAG); ce != nil {
+			ce.Write(
+				zap.Error(e),
+				zap.String(`session`, session.Who()),
+				zap.Int64(`id`, request.Id),
+			)
+		}
+		return
+	}
+	if changed {
+		response = &changedPasswordResponse
+		if ce := logger.Logger.Check(zap.InfoLevel, TAG); ce != nil {
+			ce.Write(
+				zap.String(`session`, session.Who()),
+				zap.Int64(`id`, request.Id),
+			)
+		}
+	} else {
+		response = &notChangedPasswordResponse
+	}
 	return
 }
 func (s _Impl) Change(ctx context.Context, request *grpc_user.ChangeRequest) (response *grpc_user.ChangeResponse, e error) {
@@ -64,7 +109,32 @@ func (s _Impl) Change(ctx context.Context, request *grpc_user.ChangeRequest) (re
 	return
 }
 func (s _Impl) Remove(ctx context.Context, request *grpc_user.RemoveRequest) (response *grpc_user.RemoveResponse, e error) {
-	TAG := `user Remove`
-	e = s.Error(codes.Unimplemented, TAG)
+	TAG := `user Password`
+	session, e := s.AccessSession(ctx)
+	if e != nil {
+		return
+	}
+	rowsAffected, e := db.Remove(request.Id)
+	if e != nil {
+		if ce := logger.Logger.Check(zap.WarnLevel, TAG); ce != nil {
+			ce.Write(
+				zap.Error(e),
+				zap.String(`session`, session.Who()),
+				zap.Int64s(`id`, request.Id),
+			)
+		}
+		return
+	}
+	response = &grpc_user.RemoveResponse{
+		RowsAffected: rowsAffected,
+	}
+	if ce := logger.Logger.Check(zap.InfoLevel, TAG); ce != nil {
+		ce.Write(
+			zap.Error(e),
+			zap.String(`session`, session.Who()),
+			zap.Int64s(`id`, request.Id),
+			zap.Int64(`rowsAffected`, rowsAffected),
+		)
+	}
 	return
 }

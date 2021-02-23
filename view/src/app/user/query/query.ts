@@ -82,7 +82,7 @@ export class Request {
 
 export interface Data {
     id: string
-    string: string
+    name: string
     nickname: string
     authorization: Array<number>
 }

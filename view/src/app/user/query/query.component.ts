@@ -1,11 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToasterService } from 'angular2-toaster';
 import { finalize, takeUntil } from 'rxjs/operators';
-import { Authorization, AuthorizationName, ServerAPI } from 'src/app/core/core/api';
+import { AuthorizationName, ServerAPI } from 'src/app/core/core/api';
 import { Closed } from 'src/app/core/utils/closed';
+import { DeleteComponent } from '../dialog/delete/delete.component';
+import { PasswordComponent } from '../dialog/password/password.component';
 import { Request, Response, Data, DefaultLimit } from './query'
 
 @Component({
@@ -25,6 +28,7 @@ export class QueryComponent implements OnInit, OnDestroy {
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly toasterService: ToasterService,
+    private readonly matDialog: MatDialog,
   ) {
   }
   private closed_ = new Closed()
@@ -146,12 +150,40 @@ export class QueryComponent implements OnInit, OnDestroy {
     })
   }
   onClickPassword(data: Data) {
-    console.log('password', data)
+    this.matDialog.open(PasswordComponent, {
+      data: data,
+      disableClose: true,
+    })
   }
   onClickEdit(data: Data) {
     console.log('edit', data)
   }
   onClickDelete(data: Data) {
-    console.log('delete', data)
+    this.matDialog.open(DeleteComponent, {
+      data: data,
+      disableClose: true,
+    }).afterClosed().toPromise<boolean>().then((deleted) => {
+
+      if (this.closed_.isClosed || !deleted || typeof deleted !== "boolean") {
+        return
+      }
+      const index = this.source.indexOf(data)
+
+      if (index > -1) {
+        const source = new Array<Data>()
+        this.source.splice(index, 1)
+        source.push(...this.source)
+        this.source = source
+        if (this.request.count > 0) {
+          this.request.count--
+        }
+        if (this.request_.count > 0) {
+          this.request_.count--
+        }
+      }
+    })
+  }
+  onClickAdd() {
+    console.log('add')
   }
 }

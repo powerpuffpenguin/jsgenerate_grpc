@@ -19,6 +19,7 @@
 *.xz
 *.7z
 *.zip
+*.db
 
 /assets/
 /static/3rdpartylicenses.txt

@@ -12,17 +12,22 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { QueryComponent } from './query/query.component';
+import { PasswordComponent } from './dialog/password/password.component';
+import { DeleteComponent } from './dialog/delete/delete.component';
 
 
 @NgModule({
-  declarations: [QueryComponent],
+  declarations: [QueryComponent, PasswordComponent, DeleteComponent],
   imports: [
     CommonModule, FormsModule,
     MatButtonModule, MatFormFieldModule, MatCheckboxModule,
     MatInputModule, MatPaginatorModule, MatTableModule,
-    MatTooltipModule, MatIconModule,
+    MatTooltipModule, MatIconModule, MatDialogModule,
+    MatProgressSpinnerModule,
     UserRoutingModule
   ]
 })

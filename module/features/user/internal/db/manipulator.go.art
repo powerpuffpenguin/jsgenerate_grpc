@@ -1,6 +1,8 @@
 package db
 
 import (
+	"time"
+	
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -27,6 +29,7 @@ func (a dataSortByID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a dataSortByID) Less(i, j int) bool { return a[i].ID < a[j].ID }
 
 type _Management struct {
+	id   int64
 	keys map[string]*Data
 	sync.RWMutex
 }
@@ -44,6 +47,7 @@ func (m *_Management) onReload(data json.RawMessage) (e error) {
 		return
 	}
 	m.Lock()
+	m.id = 0
 	for k := range m.keys {
 		delete(m.keys, k)
 	}
@@ -55,7 +59,8 @@ func (m *_Management) onReload(data json.RawMessage) (e error) {
 			!utils.MatchName(name) {
 			continue
 		}
-		item.ID = int64(i)
+		m.id++
+		item.ID = m.id
 		b := md5.Sum([]byte(item.Password))
 		item.Password = hex.EncodeToString(b[:])
 		m.keys[name] = item
@@ -115,9 +120,57 @@ func (m *_Management) Find(request *grpc_user.FindRequest) (response *grpc_user.
 	}
 	m.RUnlock()
 	return
+}
+
+func (m *_Management) Password(id int64, value string) (changed bool, e error) {
+	m.Lock()
+	for _, item := range m.keys {
+		if item.ID == id {
+			if item.Password != value {
+				changed = true
+				item.Password = value
+			}
+			break
+		}
+	}
+	m.Unlock()
+	return
+}
+
+func (m *_Management) Remove(ids []int64) (rowsAffected int64, e error) {
+	m.Lock()
+	for key, item := range m.keys {
+		match := false
+		for _, id := range ids {
+			if id == item.ID {
+				match = true
+				break
+			}
+		}
+		if match {
+			rowsAffected++
+			delete(m.keys, key)
+		}
+	}
+	m.Unlock()
+	if rowsAffected != 0 {
+		modtimeHelper.Modified(time.Now())
+	}
+	return
 }{{/if}}
 
-// Find .
+// Find select data
 func Find(request *grpc_user.FindRequest) (*grpc_user.FindResponse, error) {
 {{if db}}{{else}}	return _management.Find(request){{/if}}
+}
+// Password change password
+func Password(id int64, value string) (bool, error) {
+{{if db}}{{else}}	return _management.Password(id, value){{/if}}
+}
+// Remove data
+func Remove(ids []int64) (int64, error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
+{{if db}}{{else}}	return _management.Remove(ids){{/if}}
 }
