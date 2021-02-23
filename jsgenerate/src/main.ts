@@ -23,6 +23,7 @@ class Metadata {
     get pkg(): string {
         return this.pkg_
     }
+    year = new Date().getFullYear()
     gateway = false
     gin = false
     db = false
@@ -132,9 +133,10 @@ export function jsgenerate(context: Context) {
             `${md.project}.jsonnet`, `example.jsonnet`, `bin`
         )
         const readme = join(__dirname, '..', '..', 'README.md')
+        const LICENSE = join(__dirname, '..', '..', 'LICENSE')
         context.serve(
             async function (name, src, stat): Promise<undefined> {
-                if (src === readme || nameService.checkExclude(name)) {
+                if (src === readme || src === LICENSE || nameService.checkExclude(name)) {
                     return
                 }
                 const filename = nameService.getOutput(name)
