@@ -73,9 +73,9 @@ local GB = 1024*MB;
 		Str: "{{project}}.db", // sqlite3
 		// Show: true,
 		// max connections if < 1 not not limited
-		MaxOpen: 10,
+		MaxOpen: 50,
 		// idle connections if < 1  not exists idle
-		MaxIdle: 2,
+		MaxIdle: 10,
 	},{{/if}}
 	Logger: {
 		// log save filename

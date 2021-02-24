@@ -99,6 +99,7 @@ export function jsgenerate(context: Context) {
         const exclude = ['.git', 'document']
         if (!md.db) {
             exclude.push(join('configure', 'db.go'))
+            exclude.push(join('db', 'manipulator', 'init.go'))
         }
         if (!md.gateway) {
             exclude.push(join('cmd', 'internal', 'daemon', 'proxy.go'))

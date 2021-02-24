@@ -17,7 +17,7 @@ const (
 // Data .
 type Data struct {
 	ID            int64   `xorm:"pk autoincr 'id'"`
-	Name          string  `xorm:"'name'"`
+	Name          string  `xorm:"unique 'name'"`
 	Nickname      string  `xorm:"'nickname'"`
 	Password      string  `xorm:"'password'"`
 	Authorization []int32 `xorm:"'authorization'"`

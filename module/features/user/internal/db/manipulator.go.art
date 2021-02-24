@@ -8,7 +8,9 @@ import (
 
 	grpc_user "{{pkg}}/protocol/features/user"
 	"strconv"
-{{if !db}}
+{{if db}}
+	"{{pkg}}/db/manipulator"
+{{else}}
 	"sort"
 	"crypto/md5"
 	"encoding/hex"
@@ -66,15 +68,11 @@ func (m *_Management) onReload(data json.RawMessage) (e error) {
 		m.keys[name] = item
 	}
 	m.Unlock()
+	modtimeHelper.Modified(time.Now())
 	return
 }
 
 func (m *_Management) Find(request *grpc_user.FindRequest) (response *grpc_user.FindResponse, e error) {
-	if request.Result < grpc_user.FindRequest_DATA ||
-		request.Result > grpc_user.FindRequest_DATA_COUNT {
-		e = status.Error(codes.InvalidArgument, `not support result enum : `+strconv.FormatInt(int64(request.Result), 10))
-		return
-	}
 	findName := strings.ToLower(request.Name)
 	var items []*Data
 	m.RLock()
@@ -140,6 +138,9 @@ func (m *_Management) Add(name, nickname, password string, authorization []int32
 		m.keys[key] = &item
 	}
 	m.Unlock()
+	if e == nil {
+		modtimeHelper.Modified(time.Now())
+	}
 	return
 }
 
@@ -179,6 +180,9 @@ func (m *_Management) Change(id int64, nickname string, authorization []int32) (
 		}
 	}
 	m.Unlock()
+	if changed {
+		modtimeHelper.Modified(time.Now())
+	}
 	return
 }
 
@@ -206,24 +210,132 @@ func (m *_Management) Remove(ids []int64) (rowsAffected int64, e error) {
 
 // Find select data
 func Find(request *grpc_user.FindRequest) (*grpc_user.FindResponse, error) {
-{{if db}}{{else}}	return _management.Find(request){{/if}}
+	if request.Result < grpc_user.FindRequest_DATA ||
+		request.Result > grpc_user.FindRequest_DATA_COUNT {
+		return nil, status.Error(codes.InvalidArgument, `not support result enum : `+strconv.FormatInt(int64(request.Result), 10))
+	}
+{{if db}}
+	session := manipulator.Session()
+	defer session.Close()
+	var beans []Data
+	var response grpc_user.FindResponse
+	if request.Name != `` {
+		if request.NameFuzzy {
+			session.Where(colName+` like ?`, `%`+request.Name+`%`)
+		} else {
+			session.Where(colName+` = ?`, request.Name)
+		}
+	}
+	switch request.Result {
+	case grpc_user.FindRequest_COUNT:
+		count, e := session.Count(&Data{})
+		if e != nil {
+			return nil, e
+		}
+		response.Count = count
+	case grpc_user.FindRequest_DATA:
+		e := session.Find(&beans)
+		if e != nil {
+			return nil, e
+		}
+	default: // FindRequest_DATA_COUNT
+		count, e := session.FindAndCount(&beans)
+		if e != nil {
+			return nil, e
+		}
+		response.Count = count
+	}
+	if len(beans) != 0 {
+		response.Data = make([]*grpc_user.Data, len(beans))
+		for i := 0; i < len(beans); i++ {
+			response.Data[i] = beans[i].ToPB()
+		}
+	}
+	return &response, nil
+{{else}}
+	return _management.Find(request)
+{{/if}}
 }
 // Password change password
 func Password(id int64, value string) (bool, error) {
-{{if db}}{{else}}	return _management.Password(id, value){{/if}}
+{{if db}}
+	rows, e := manipulator.Engine().
+		ID(id).
+		Cols(colPassword).
+		Update(&Data{
+			Password: value,
+		})
+	if e != nil {
+		return false, e
+	}
+	return rows != 0, nil
+{{else}}
+	return _management.Password(id, value)
+{{/if}}
 }
 // Change properties
 func Change(id int64, nickname string, authorization []int32) (bool, error) {
-{{if db}}{{else}}	return _management.Change(id, nickname, authorization){{/if}}
+{{if db}}
+	rows, e := manipulator.Engine().
+		ID(id).
+		Cols(colNickname, colAuthorization).
+		Update(&Data{
+			Nickname:      nickname,
+			Authorization: authorization,
+		})
+	if e != nil {
+		return false, e
+	}
+	changed := rows !=0
+	if changed {
+		modtimeHelper.Modified(time.Now())
+	}
+	return changed, nil
+{{else}}
+	return _management.Change(id, nickname, authorization)
+{{/if}}
 }
 // Remove data
 func Remove(ids []int64) (int64, error) {
 	if len(ids) == 0 {
 		return 0, nil
 	}
-{{if db}}{{else}}	return _management.Remove(ids){{/if}}
+{{if db}}
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		args[i] = id
+	}
+	rows, e := manipulator.Engine().
+		In(colID, args...).
+		Delete(&Data{})
+	if e != nil {
+		return 0, e
+	}
+	if rows != 0 {
+		modtimeHelper.Modified(time.Now())
+		manipulator.ClearCache(&Data{})
+	}
+	return rows, nil
+{{else}}
+	return _management.Remove(ids)
+{{/if}}
 }
 // Add data
 func Add(name, nickname, password string, authorization []int32) (int64, error) {
-{{if db}}{{else}}	return _management.Add(name, nickname, password, authorization){{/if}}
+{{if db}}
+	bean := &Data{
+		Name:          name,
+		Nickname:      nickname,
+		Password:      password,
+		Authorization: authorization,
+	}
+	_, e := manipulator.Engine().InsertOne(bean)
+	if e != nil {
+		return 0, e
+	}
+	modtimeHelper.Modified(time.Now())
+	return bean.ID, nil
+{{else}}
+	return _management.Add(name, nickname, password, authorization)
+{{/if}}
 }

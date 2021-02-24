@@ -186,10 +186,10 @@ func (h *ModtimeHelper) Init(unix int64, etag, description string) (e error) {
 		return
 	} else if !exists {
 		_, e = engine.InsertOne(&data.Modtime{
-			ID:          modtimeID,
+			ID:          h.id,
 			Unix:        unix,
-            ETag:        etag,
-			Description: `features.user`,
+			ETag:        etag,
+			Description: description,
 		})
 		if e != nil {
 			return

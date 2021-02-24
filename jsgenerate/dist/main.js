@@ -103,6 +103,7 @@ function jsgenerate(context) {
         const exclude = ['.git', 'document'];
         if (!md.db) {
             exclude.push(path_1.join('configure', 'db.go'));
+            exclude.push(path_1.join('db', 'manipulator', 'init.go'));
         }
         if (!md.gateway) {
             exclude.push(path_1.join('cmd', 'internal', 'daemon', 'proxy.go'));

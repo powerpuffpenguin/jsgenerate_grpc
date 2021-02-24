@@ -1,0 +1,137 @@
+package manipulator
+
+import (
+	"{{pkg}}/configure"
+	"{{pkg}}/db/data"
+	"{{pkg}}/logger"
+	"os"
+
+	"go.uber.org/zap"
+	"xorm.io/xorm"
+)
+
+var _Engine *xorm.Engine
+
+// Init Initialize the database
+func Init() {
+	cnf := configure.DefaultConfigure().DB
+	// engine
+	engine, e := xorm.NewEngine(cnf.Driver, cnf.Str)
+	if e != nil {
+		if ce := logger.Logger.Check(zap.FatalLevel, "db NewEngine"); ce != nil {
+			ce.Write(
+				zap.Error(e),
+			)
+		}
+		os.Exit(1)
+	}
+	_Engine = engine
+	// show sql
+	if cnf.Show {
+		_Engine.ShowSQL(true)
+	}
+
+	// connect pool
+	if cnf.MaxOpen > 1 {
+		engine.SetMaxOpenConns(cnf.MaxOpen)
+	}
+	if cnf.MaxIdle > 1 {
+		engine.SetMaxIdleConns(cnf.MaxIdle)
+	}
+	// table
+	_, e = engine.Transaction(func(session *xorm.Session) (interface{}, error) {
+		return nil, SyncTable(session,
+			&data.Modtime{},
+		)
+	})
+	if e != nil {
+		os.Exit(1)
+	}
+	return
+}
+
+// SyncTable sync table to consistent
+func SyncTable(session *xorm.Session, beans ...interface{}) (e error) {
+	for i := 0; i < len(beans); i++ {
+		e = syncTable(session, beans[i])
+		if e != nil {
+			return
+		}
+	}
+	return
+}
+func syncTable(session *xorm.Session, bean interface{}) (e error) {
+	has, e := session.IsTableExist(bean)
+	if e != nil {
+		if ce := logger.Logger.Check(zap.FatalLevel, "IsTableExist"); ce != nil {
+			ce.Write(
+				zap.Error(e),
+			)
+		}
+		return
+	} else if has {
+		e = session.Sync2(bean)
+		if e != nil {
+			if ce := logger.Logger.Check(zap.FatalLevel, "Sync2"); ce != nil {
+				ce.Write(
+					zap.Error(e),
+				)
+			}
+			return
+		}
+	} else {
+		e = session.CreateTable(bean)
+		if e != nil {
+			if ce := logger.Logger.Check(zap.FatalLevel, "CreateTable"); ce != nil {
+				ce.Write(
+					zap.Error(e),
+				)
+			}
+			return
+		}
+		e = session.CreateIndexes(bean)
+		if e != nil {
+			if ce := logger.Logger.Check(zap.FatalLevel, "CreateIndexes"); ce != nil {
+				ce.Write(
+					zap.Error(e),
+				)
+			}
+			return
+		}
+		e = session.CreateUniques(bean)
+		if e != nil {
+			if ce := logger.Logger.Check(zap.FatalLevel, "CreateUniques"); ce != nil {
+				ce.Write(
+					zap.Error(e),
+				)
+			}
+			return
+		}
+	}
+	return
+}
+
+// Engine return xorm.Engine
+func Engine() *xorm.Engine {
+	return _Engine
+}
+
+// Session return xorm.Session
+func Session() *xorm.Session {
+	return _Engine.NewSession()
+}
+
+// Transaction Execute sql wrapped in a transaction(abbr as tx), tx will automatic commit if no errors occurred
+func Transaction(f func(*xorm.Session) (interface{}, error)) (interface{}, error) {
+	return _Engine.Transaction(f)
+}
+
+// ClearCache if enabled cache, clear some tables' cache
+func ClearCache(beans ...interface{}) error {
+	return _Engine.ClearCache(beans...)
+}
+
+// ClearCacheBean if enabled cache, clear the cache bean
+func ClearCacheBean(bean interface{}, id string) error {
+	return _Engine.ClearCacheBean(bean, id)
+}

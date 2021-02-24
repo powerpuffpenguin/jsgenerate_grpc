@@ -8,7 +8,11 @@ import (
 	"{{pkg}}/db/jwt"
 	"{{pkg}}/db/manipulator"
 	"{{pkg}}/db/signals"
-    "{{pkg}}/utils"{{if !db}}
+    "{{pkg}}/utils"{{if db}}
+	"{{pkg}}/db"
+	"crypto/rand"
+	"fmt"
+	"xorm.io/xorm"{{else}}
     "strings"{{/if}}
     "time"
 )
@@ -26,11 +30,45 @@ func OnStart(data json.RawMessage) (e error) {
 	e = modtimeHelper.Init(time.Now().Unix(), ``, `features.user`)
 	if e != nil {
 		return
-	}{{if !db}}
+	}
+{{if db}}
+	_, e = manipulator.Transaction(func(session *xorm.Session) (result interface{}, e error) {
+		bean := &Data{}
+		e = manipulator.SyncTable(session, bean)
+		if e != nil {
+			return
+		}
+		count, e := session.Count(bean)
+		if e != nil {
+			return
+		}
+		if count == 0 {
+			name := `king`
+			b := make([]byte, 8)
+			rand.Read(b)
+			p := md5.Sum(b)
+			password := hex.EncodeToString(p[:])
+			fmt.Println(`user =`, name)
+			fmt.Println(`password =`, password)
+
+			p = md5.Sum(([]byte)(password))
+			_, e = session.InsertOne(&Data{
+				Name:          name,
+				Password:      hex.EncodeToString(p[:]),
+				Authorization: []int32{db.Root},
+			})
+		}
+		return
+	})
+	if e != nil {
+		return
+	}
+{{else}}
 	e = _management.onReload(data)
 	if e != nil {
 		return
-	}{{/if}}
+	}
+{{/if}}
 
 	signal := signals.Default()
 	signal.Session.ConnectPost(login)
@@ -50,6 +88,26 @@ func OnReload(data json.RawMessage) (e error) {
 }
 func login(ctx context.Context, name, password, salt string) (session *jwt.Session, e error) {
 {{if db}}
+	var bean Data
+	exists, e := manipulator.Engine().
+		Where(colName+` = ?`, name).
+		Context(ctx).
+		Get(&bean)
+	if e != nil {
+		return
+	} else if exists {
+		b := md5.Sum([]byte(bean.Password + salt))
+		if password == hex.EncodeToString(b[:]) {
+			session = &jwt.Session{
+				ID:            bean.ID,
+				Name:          bean.Name,
+				Nickname:      bean.Nickname,
+				Authorization: bean.Authorization,
+				Salt:          utils.NewSalt(),
+				Access:        true,
+			}
+		}
+	}
 {{else}}
 	_management.RLock()
 	data, ok := _management.keys[strings.ToLower(name)]
@@ -73,7 +131,16 @@ func login(ctx context.Context, name, password, salt string) (session *jwt.Sessi
 }
 func password(ctx context.Context, id int64, old, password string) (changed bool, e error) {
 {{if db}}
-{{else}}	_management.Lock()
+	rows, e := manipulator.Engine().
+		ID(id).
+		Where(colPassword+` = ?`, old).
+		Update(&Data{Password: password})
+	if e != nil {
+		return
+	}
+	changed = rows != 0
+{{else}}
+	_management.Lock()
 	for _, item := range _management.keys {
 		if item.ID == id {
 			if item.Password == old {
@@ -83,6 +150,7 @@ func password(ctx context.Context, id int64, old, password string) (changed bool
 			break
 		}
 	}
-	_management.Unlock(){{/if}}
+	_management.Unlock()
+{{/if}}
 	return
 }
