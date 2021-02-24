@@ -176,7 +176,7 @@ async function buildVersion() {
         '// Commit git commit', 'const Commit = `' + commit.trim() + '`', '',
         '// Date build datetime', 'const Date = `' + date + '`', '',
     ].join("\r\n");
-    console.log(str);
+    console.log(str.trim());
     await fs_1.promises.writeFile(filename, str);
 }
 function BuildVersion(program) {

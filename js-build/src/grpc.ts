@@ -1,5 +1,5 @@
-import { promises, constants } from 'fs';
-import { join, normalize, delimiter, isAbsolute } from 'path';
+import { promises } from 'fs';
+import { join, normalize, isAbsolute } from 'path';
 import { Command } from '../commander';
 import { ExecFile, ClearDirectory, RmDirectory } from './utils';
 
@@ -61,27 +61,9 @@ class Builder {
                     const args = new Array<string>()
                     args.push('-I', this.root)
                     set.add(this.root)
-
-                    if (this.gateway) {
-                        const gopath = process.env['GOPATH']
-                        const strs = gopath.split(delimiter)
-                        for (let i = 0; i < strs.length; i++) {
-                            const str = strs[0].trim()
-                            if (str.length == 0) {
-                                continue
-                            }
-                            const filename = normalize(join(str, 'src', 'github.com', 'grpc-ecosystem', 'grpc-gateway', 'third_party', 'googleapis'))
-                            try {
-                                await promises.access(filename, constants.F_OK)
-                                if (!set.has(filename)) {
-                                    args.push('-I', filename)
-                                    set.add(filename)
-                                }
-                                break
-                            } catch (e) {
-                            }
-                        }
-                    }
+                    const filename = normalize(join(this.cwd, 'third_party', 'googleapis'))
+                    args.push('-I', filename)
+                    set.add(filename)
                     if (Array.isArray(includes)) {
                         includes.forEach((v) => {
                             if (!set.has(v)) {
