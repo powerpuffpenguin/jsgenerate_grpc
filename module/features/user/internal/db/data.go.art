@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	tableName = `user`
+	tableName = `data_of_features_user`
 
 	colID            = `id`
 	colName          = `name`
@@ -21,6 +21,11 @@ type Data struct {
 	Nickname      string  `xorm:"'nickname'"`
 	Password      string  `xorm:"'password'"`
 	Authorization []int32 `xorm:"'authorization'"`
+}
+
+// TableName .
+func (Data) TableName() string {
+	return tableName
 }
 
 // ToPB .

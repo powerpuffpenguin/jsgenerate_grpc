@@ -68,7 +68,7 @@ local GB = 1024*MB;
 		// driver [mysql mssql sqlite3]
 		Driver: "sqlite3",
 		// connection string
-		// Str: "{{project}}:12345678@/{{project}}?charset=utf8", // mysql
+		// Str: "{{project}}:12345678@tcp(localhost:3306)/{{project}}?charset=utf8", // mysql
 		// Str: "server=127.0.0.1;port=1433;user id={{project}};password=12345678;database={{project}};encrypt=disable;", // mssql
 		Str: "{{project}}.db", // sqlite3
 		// Show: true,
@@ -76,6 +76,19 @@ local GB = 1024*MB;
 		MaxOpen: 50,
 		// idle connections if < 1  not exists idle
 		MaxIdle: 10,
+		Cache: {
+			// Default cache record , if < 1 not use default cache
+			Record: 1000,
+			// These tables not use cache
+			Direct: [],
+			// These tables use special cache
+			Special: [
+				{
+					Name: "user",
+					Record: 100,
+				},
+			]
+		}
 	},{{/if}}
 	Logger: {
 		// log save filename

@@ -98,7 +98,7 @@ export class QueryComponent implements OnInit, OnDestroy {
     return typeof lname === "string" &&
       typeof rname === "string" &&
       lname.trim().toLowerCase() == rname.trim().toLowerCase() &&
-      this.request.nameFuzzy == this.request_.nameFuzzy &&
+      (lname.length == 0 || this.request.nameFuzzy == this.request_.nameFuzzy) &&
       this.request.limit == this.request_.limit && this.request_.offset == 0
   }
   onClickQuery() {

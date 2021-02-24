@@ -11,15 +11,32 @@ type DB struct {
 	Show    bool
 	MaxOpen int
 	MaxIdle int
+	Cache   DBCache
 }
 
 // Format .
 func (db *DB) Format(basePath string) (e error) {
-	if db.Driver == "sqlite3" {
-		if db.Str == "" {
-			db.Str = "securecookie.json"
+	if db.Driver == `sqlite3` {
+		if db.Str == `` {
+			db.Str = `{{project}}.json`
 		}
 		db.Str = utils.Abs(basePath, db.Str)
 	}
 	return
+}
+
+// DBCache .
+type DBCache struct {
+	// Default cache record , if < 1 not use default cache
+	Record int
+	// These tables not use cache
+	Direct []string
+	// These tables use special cache
+	Special []DBCacheSpecial
+}
+
+// DBCacheSpecial .
+type DBCacheSpecial struct {
+	Name   string
+	Record int
 }

@@ -8,6 +8,7 @@ import (
 
 	"go.uber.org/zap"
 	"xorm.io/xorm"
+	"xorm.io/xorm/caches"
 )
 
 var _Engine *xorm.Engine
@@ -18,7 +19,7 @@ func Init() {
 	// engine
 	engine, e := xorm.NewEngine(cnf.Driver, cnf.Str)
 	if e != nil {
-		if ce := logger.Logger.Check(zap.FatalLevel, "db NewEngine"); ce != nil {
+		if ce := logger.Logger.Check(zap.FatalLevel, `db NewEngine`); ce != nil {
 			ce.Write(
 				zap.Error(e),
 			)
@@ -30,7 +31,42 @@ func Init() {
 	if cnf.Show {
 		_Engine.ShowSQL(true)
 	}
-
+	// cache
+	if cnf.Cache.Record > 0 {
+		_Engine.SetDefaultCacher(
+			caches.NewLRUCacher(
+				caches.NewMemoryStore(),
+				cnf.Cache.Record,
+			),
+		)
+		if ce := logger.Logger.Check(zap.InfoLevel, `SetDefaultCacher`); ce != nil {
+			ce.Write(
+				zap.Int(`record`, cnf.Cache.Record),
+			)
+		}
+		for _, name := range cnf.Cache.Direct {
+			_Engine.SetCacher(name, nil)
+			if ce := logger.Logger.Check(zap.InfoLevel, `SetCacher nil`); ce != nil {
+				ce.Write(
+					zap.String(`name`, name),
+				)
+			}
+		}
+	}
+	for _, item := range cnf.Cache.Special {
+		if item.Name != `` && item.Record > 0 {
+			_Engine.SetCacher(item.Name, caches.NewLRUCacher(
+				caches.NewMemoryStore(),
+				item.Record,
+			))
+			if ce := logger.Logger.Check(zap.InfoLevel, `SetCacher`); ce != nil {
+				ce.Write(
+					zap.String(`name`, item.Name),
+					zap.Int(`record`, item.Record),
+				)
+			}
+		}
+	}
 	// connect pool
 	if cnf.MaxOpen > 1 {
 		engine.SetMaxOpenConns(cnf.MaxOpen)
@@ -39,12 +75,21 @@ func Init() {
 		engine.SetMaxIdleConns(cnf.MaxIdle)
 	}
 	// table
+	ping := false
 	_, e = engine.Transaction(func(session *xorm.Session) (interface{}, error) {
+		ping = true
 		return nil, SyncTable(session,
 			&data.Modtime{},
 		)
 	})
 	if e != nil {
+		if !ping {
+			if ce := logger.Logger.Check(zap.FatalLevel, `BEGIN TRANSACTION`); ce != nil {
+				ce.Write(
+					zap.Error(e),
+				)
+			}
+		}
 		os.Exit(1)
 	}
 	return
@@ -63,7 +108,7 @@ func SyncTable(session *xorm.Session, beans ...interface{}) (e error) {
 func syncTable(session *xorm.Session, bean interface{}) (e error) {
 	has, e := session.IsTableExist(bean)
 	if e != nil {
-		if ce := logger.Logger.Check(zap.FatalLevel, "IsTableExist"); ce != nil {
+		if ce := logger.Logger.Check(zap.FatalLevel, `IsTableExist`); ce != nil {
 			ce.Write(
 				zap.Error(e),
 			)
@@ -72,7 +117,7 @@ func syncTable(session *xorm.Session, bean interface{}) (e error) {
 	} else if has {
 		e = session.Sync2(bean)
 		if e != nil {
-			if ce := logger.Logger.Check(zap.FatalLevel, "Sync2"); ce != nil {
+			if ce := logger.Logger.Check(zap.FatalLevel, `Sync2`); ce != nil {
 				ce.Write(
 					zap.Error(e),
 				)
@@ -82,7 +127,7 @@ func syncTable(session *xorm.Session, bean interface{}) (e error) {
 	} else {
 		e = session.CreateTable(bean)
 		if e != nil {
-			if ce := logger.Logger.Check(zap.FatalLevel, "CreateTable"); ce != nil {
+			if ce := logger.Logger.Check(zap.FatalLevel, `CreateTable`); ce != nil {
 				ce.Write(
 					zap.Error(e),
 				)
@@ -91,7 +136,7 @@ func syncTable(session *xorm.Session, bean interface{}) (e error) {
 		}
 		e = session.CreateIndexes(bean)
 		if e != nil {
-			if ce := logger.Logger.Check(zap.FatalLevel, "CreateIndexes"); ce != nil {
+			if ce := logger.Logger.Check(zap.FatalLevel, `CreateIndexes`); ce != nil {
 				ce.Write(
 					zap.Error(e),
 				)
@@ -100,7 +145,7 @@ func syncTable(session *xorm.Session, bean interface{}) (e error) {
 		}
 		e = session.CreateUniques(bean)
 		if e != nil {
-			if ce := logger.Logger.Check(zap.FatalLevel, "CreateUniques"); ce != nil {
+			if ce := logger.Logger.Check(zap.FatalLevel, `CreateUniques`); ce != nil {
 				ce.Write(
 					zap.Error(e),
 				)
