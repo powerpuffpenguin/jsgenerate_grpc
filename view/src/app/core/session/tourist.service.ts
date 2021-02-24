@@ -74,7 +74,15 @@ export class TouristService {
     }
     return token
   }
-  async access(): Promise<Token> {
+  async access(force?: boolean): Promise<Token> {
+    if (force && this.access_) {
+      try {
+        await this.access_.promise
+        this.access_ = undefined
+      } catch (e) {
+
+      }
+    }
     if (!this.access_) {
       this.access_ = new Completer<Token>()
       try {

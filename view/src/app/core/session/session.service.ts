@@ -205,39 +205,48 @@ export class SessionService {
     this.signining_.next(true)
     try {
       const tourist = await this.touristService.accessValid()
-      const unix = getUnix()
-      password = md5String(md5String(password) + tourist.data.salt + unix)
-
-      const response = await ServerAPI.v1.features.sessions.post<Response>(this.httpClient,
-        {
-          name: name,
-          password: password,
-        },
-        {
-          headers: generateHeader(unix, tourist.data.salt, tourist.token),
-        },
-      ).toPromise()
-      const access = new Token(response.access)
-      if (remember && access.seconds > 60) {
-        setItem(AccessKey, access.token)
+      return await this._signin(tourist, name, password, remember)
+    } catch (e) {
+      if (e instanceof NetError && e.status == 401) {
+        const tourist = await this.touristService.access(true)
+        return await this._signin(tourist, name, password, remember)
       }
-      let refresh: Token | undefined
-      if (remember && typeof response.refresh === "string" && response.refresh.length > 0) {
-        try {
-          refresh = new Token(response.refresh)
-          if (refresh.seconds > 60 * 5) {
-            setItem(RefreshKey, refresh.token)
-          }
-        } catch (e) {
-          console.warn('new session refresh token error :', e)
-        }
-      }
-      this.remember_ = remember
-      this._nextSession(new Session(access, refresh))
-      return access
+      throw e
     } finally {
       this.signining_.next(false)
     }
+  }
+  async _signin(tourist: Token, name: string, password: string, remember: boolean): Promise<Token | undefined> {
+    const unix = getUnix()
+    password = md5String(md5String(password) + tourist.data.salt + unix)
+
+    const response = await ServerAPI.v1.features.sessions.post<Response>(this.httpClient,
+      {
+        name: name,
+        password: password,
+      },
+      {
+        headers: generateHeader(unix, tourist.data.salt, tourist.token),
+      },
+    ).toPromise()
+    const access = new Token(response.access)
+    if (remember && access.seconds > 60) {
+      setItem(AccessKey, access.token)
+    }
+    let refresh: Token | undefined
+    if (remember && typeof response.refresh === "string" && response.refresh.length > 0) {
+      try {
+        refresh = new Token(response.refresh)
+        if (refresh.seconds > 60 * 5) {
+          setItem(RefreshKey, refresh.token)
+        }
+      } catch (e) {
+        console.warn('new session refresh token error :', e)
+      }
+    }
+    this.remember_ = remember
+    this._nextSession(new Session(access, refresh))
+    return access
   }
   signout() {
     if (this.subject_.value) {
