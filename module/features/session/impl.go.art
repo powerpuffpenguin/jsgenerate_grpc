@@ -134,7 +134,7 @@ func (s _Impl) Password(ctx context.Context, request *grpc_session.PasswordReque
 		e = s.Error(codes.InvalidArgument, `password not changed`)
 		return
 	}
-	session, e := s.AccessSession(ctx)
+	session, e := s.Session(ctx)
 	if e != nil {
 		return
 	}

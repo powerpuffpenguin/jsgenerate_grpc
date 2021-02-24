@@ -61,7 +61,7 @@ func (s _Impl) Find(ctx context.Context, request *grpc_user.FindRequest) (respon
 }
 func (s _Impl) Add(ctx context.Context, request *grpc_user.AddRequest) (response *grpc_user.AddResponse, e error) {
 	TAG := `user Add`
-	session, e := s.AccessSession(ctx)
+	session, e := s.Session(ctx)
 	if e != nil {
 		return
 	}
@@ -106,7 +106,7 @@ var notChangedPasswordResponse grpc_user.PasswordResponse
 
 func (s _Impl) Password(ctx context.Context, request *grpc_user.PasswordRequest) (response *grpc_user.PasswordResponse, e error) {
 	TAG := `user Password`
-	session, e := s.AccessSession(ctx)
+	session, e := s.Session(ctx)
 	if e != nil {
 		return
 	}
@@ -147,7 +147,7 @@ var notChangedChangeResponse grpc_user.ChangeResponse
 
 func (s _Impl) Change(ctx context.Context, request *grpc_user.ChangeRequest) (response *grpc_user.ChangeResponse, e error) {
 	TAG := `user Change`
-	session, e := s.AccessSession(ctx)
+	session, e := s.Session(ctx)
 	if e != nil {
 		return
 	}
@@ -185,7 +185,7 @@ func (s _Impl) Change(ctx context.Context, request *grpc_user.ChangeRequest) (re
 }
 func (s _Impl) Remove(ctx context.Context, request *grpc_user.RemoveRequest) (response *grpc_user.RemoveResponse, e error) {
 	TAG := `user Password`
-	session, e := s.AccessSession(ctx)
+	session, e := s.Session(ctx)
 	if e != nil {
 		return
 	}
