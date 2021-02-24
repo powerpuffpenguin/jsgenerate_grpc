@@ -134,10 +134,11 @@ export function jsgenerate(context: Context) {
             `${md.project}.jsonnet`, `example.jsonnet`, `bin`
         )
         const readme = join(__dirname, '..', '..', 'README.md')
+        const readmezh = join(__dirname, '..', '..', 'README_ZH.md')
         const LICENSE = join(__dirname, '..', '..', 'LICENSE')
         context.serve(
             async function (name, src, stat): Promise<undefined> {
-                if (src === readme || src === LICENSE || nameService.checkExclude(name)) {
+                if (src === readme || src === readmezh || src === LICENSE || nameService.checkExclude(name)) {
                     return
                 }
                 const filename = nameService.getOutput(name)

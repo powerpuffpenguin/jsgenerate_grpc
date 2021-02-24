@@ -129,9 +129,10 @@ function jsgenerate(context) {
         }
         const nameService = new helper_1.NameService(context.output, uuid, new helper_1.Exclude(prefix, [], exclude)).rename(`${md.project}.jsonnet`, `example.jsonnet`, `bin`);
         const readme = path_1.join(__dirname, '..', '..', 'README.md');
+        const readmezh = path_1.join(__dirname, '..', '..', 'README_ZH.md');
         const LICENSE = path_1.join(__dirname, '..', '..', 'LICENSE');
         context.serve(async function (name, src, stat) {
-            if (src === readme || src === LICENSE || nameService.checkExclude(name)) {
+            if (src === readme || src === readmezh || src === LICENSE || nameService.checkExclude(name)) {
                 return;
             }
             const filename = nameService.getOutput(name);
