@@ -96,3 +96,39 @@ type Module interface {
 * Package management implements a middleware with two functions compatible with grpc interceptor. You should register the middleware for the function of the current module in RegisterGRPC
 * You can refer to the default module in **/module/features** to see how to use middleware
 * You can refer to the implementation in **/module/interceptor.go** to implement your own middleware
+
+# build.js
+
+build.js is an automation tool under nodejs that provides project compilation functions
+
+```
+$ ./build.js 
+Usage: ./build.js [options] [command]
+
+Options:
+  -h, --help         display help for command
+
+Commands:
+  linux [options]    build code to linux
+  freebsd [options]  build code to freebsd
+  darwin [options]   build code to darwin
+  windows [options]  build code to windows
+  version            update version/version.go
+  test [options]     run go test
+  grpc [options]     build *.proto to grpc code
+  source             build static source to golang code
+  help [command]     display help for command
+```
+
+example
+```
+# Generate the proto in /pb into golang's grpc implementation
+# If grpc-gateway is enabled, please refer to https://github.com/grpc-ecosystem/grpc-gateway to configure the environment
+./build.js grpc -l go
+
+# Embed /static into the front end of the web page, if the gin function is not enabled, this operation is not required
+./build.js source
+
+# Compile the program under linux/freebsd/darwin/windows
+./build.js linux
+```

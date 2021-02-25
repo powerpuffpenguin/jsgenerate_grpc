@@ -96,3 +96,39 @@ type Module interface {
 * package management 實現了一個中間件 中間是兩個兼容 grpc interceptor 的函數, 你應該在 RegisterGRPC 中 爲當前模塊的函數實現註冊中間件
 * 你可以參考 **/module/features** 中的默認模塊來查看如何使用中間件
 * 你可以參考 **/module/interceptor.go** 中的實現來實現自己的中間件
+
+# build.js
+
+build.js 是一個 nodejs 下的 自動化工具 提供了項目的 編譯功能
+
+```
+$ ./build.js 
+Usage: ./build.js [options] [command]
+
+Options:
+  -h, --help         display help for command
+
+Commands:
+  linux [options]    build code to linux
+  freebsd [options]  build code to freebsd
+  darwin [options]   build code to darwin
+  windows [options]  build code to windows
+  version            update version/version.go
+  test [options]     run go test
+  grpc [options]     build *.proto to grpc code
+  source             build static source to golang code
+  help [command]     display help for command
+```
+
+example
+```
+# 將 /pb 中 的 proto 生成 golang的 grpc 實現
+# 如果啓用了 grpc-gateway 請參考 https://github.com/grpc-ecosystem/grpc-gateway 配置好 環境
+./build.js grpc -l go
+
+# 將 /static 嵌入到網頁前端，如果沒有啓用 gin 功能則不需要此操作
+./build.js source
+
+# 編譯 linux/freebsd/darwin/windows 程式  
+./build.js linux
+```
