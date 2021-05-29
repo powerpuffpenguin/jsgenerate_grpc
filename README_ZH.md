@@ -1,3 +1,5 @@
+已廢棄，請使用新的模板 [https://github.com/powerpuffpenguin/jsgenerate_grpc-gateway](https://github.com/powerpuffpenguin/jsgenerate_grpc-gateway)
+
 # jsgenerate_grpc
 
 [English](https://github.com/powerpuffpenguin/jsgenerate_grpc/blob/master/README.md)
