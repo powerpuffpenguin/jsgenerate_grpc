@@ -1,6 +1,5 @@
 Deprecated, please use the new template [https://github.com/powerpuffpenguin/jsgenerate_grpc-gateway](https://github.com/powerpuffpenguin/jsgenerate_grpc-gateway)
 
-
 # jsgenerate_grpc
 
 [中文](https://github.com/powerpuffpenguin/jsgenerate_grpc/blob/master/README_ZH.md)
